@@ -1,10 +1,10 @@
 TableView = View.clone().newSlots({
 	type: "TableView",
 	rows: [],
-	vMargin: 7,
-	hMargin: 7,
+	vMargin: 8,
+	hMargin: 10,
 	colAlignments: [],
-	rowAlignments: [],
+	rowAlignments: []
 }).setSlots({
 	init: function()
 	{
@@ -105,12 +105,12 @@ TableView = View.clone().newSlots({
 	
 	rowAlignment: function(rowNum)
 	{
-		return this.rowAlignments()[rowNum] || TableView.RowAlignmentBottom;
+		return this.rowAlignments()[rowNum] || this.defaultRowAlignment();
 	},
 	
 	colAlignment: function(colNum)
 	{
-		return this.colAlignments()[colNum] || TableView.ColAlignmentCenter;
+		return this.colAlignments()[colNum] || this.defaultColAlignment();
 	},
 	
 	applyLayout: function()
@@ -164,4 +164,9 @@ TableView = View.clone().newSlots({
 			}
 		}
 	}
+});
+
+TableView.newSlots({
+	defaultColAlignment: TableView.ColAlignmentCenter,
+	defaultRowAlignment: TableView.RowAlignmentMiddle
 });
