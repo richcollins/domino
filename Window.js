@@ -1,7 +1,8 @@
 Window = View.clone().newSlots({
 	type: "Window",
 	lastResizeWidth: null,
-	lastResizeHeight: null
+	lastResizeHeight: null,
+	inited: false
 }).setSlots({
 	init: function()
 	{
@@ -16,6 +17,9 @@ Window = View.clone().newSlots({
 		{
 			Window.autoResize();
 		}
+		
+		this.setInited(true);
+		this.delegatePerform("windowInited");
 	},
 	
 	createElement: function()
@@ -44,3 +48,7 @@ Window = View.clone().newSlots({
 		this.setLastResizeHeight(this.height());
 	}
 });
+
+window.addEventListener("load", function(){
+	Window.init();
+})

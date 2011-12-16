@@ -28,10 +28,13 @@ Importer.importPaths([
 	"VerticalListView",
 	
 	"Editable",
-	"EditableCheckBoxSlot",
 	"EditableSlot",
+	"EditableCheckBoxSlot",
+	"EditableDropDownSlot",
 	"SlotEditorView",
 	
 	"HttpResponse",
-	"HttpRequest"	
+	"HttpRequest",
+	
+	"App"
 ]);

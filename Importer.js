@@ -18,7 +18,7 @@ Importer = Proto.clone().setType("Importer").newSlots({
 			
 			path = path + ".js";
 			
-			document.write('<script src="' + path + '"></script>');
+			document.write('<script type=\"text/javascript\" src="' + path.replace("/", "\\/") + '"><\/script>');
 		}
 	}
 });
