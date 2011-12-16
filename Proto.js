@@ -172,7 +172,7 @@ Proto.setSlots(
 			slotsMap = args[0];
 		}
 	
-		for(slotName in slotsMap)
+		for(var slotName in slotsMap)
 		{
 			this.newSlot(slotName, slotsMap[slotName]);
 		}

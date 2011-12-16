@@ -9,7 +9,7 @@ Button = Label.clone().newSlots({
 		var e = this.element();
 		e.onclick = function()
 		{
-			self.delegate().conditionallyPerform("buttonClicked", self);
+			self.delegatePerform("buttonClicked");
 		}
 		e.style.cursor = "pointer";
 	}

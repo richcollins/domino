@@ -3,7 +3,8 @@ VerticalListContentView = View.clone().newSlots({
 	items: [],
 	selectedItemIndex: null,
 	itemHMargin: 15,
-	itemVMargin: 15
+	itemVMargin: 15,
+	confirmsRemove: true
 }).setSlots({
 	init: function()
 	{
@@ -38,8 +39,7 @@ VerticalListContentView = View.clone().newSlots({
 	
 	addItem: function(itemView)
 	{
-		itemView.newSlot("itemIndex", this.items().length);
-		itemView.setY(itemView.itemIndex() * itemView.height());
+		itemView.setY(this.items().length * itemView.height());
 		this.setHeight(itemView.bottomEdge());
 		this.addSubview(itemView);
 		this.items().append(itemView);
@@ -57,15 +57,20 @@ VerticalListContentView = View.clone().newSlots({
 	{
 		if (this.selectedItemIndex() !== null)
 		{
-			var l = this.items()[this.selectedItemIndex()].label();
-			l.setColor(Color.Gray);
-			l.setFontWeight("normal");
+			var selectedItem = this.selectedItem();
+			if (selectedItem)
+			{
+				var l = selectedItem.label();
+				l.setColor(Color.Gray);
+				l.setFontWeight("normal");
+			}
 		}
 
 		var l = button.label();
 		l.setColor(Color.Black);
 		l.setFontWeight("bold");
-		this.setSelectedItemIndex(button.itemIndex());
+		
+		this.setSelectedItemIndex(this.items().indexOf(button));
 
 		this.delegatePerform("vlcvSelectedItem", button);
 	},
@@ -73,5 +78,39 @@ VerticalListContentView = View.clone().newSlots({
 	selectItem: function(item)
 	{
 		this.buttonClicked(item);
+	},
+	
+	removeItem: function(item)
+	{
+		if (this.confirmsRemove())
+		{
+			if (!confirm("Remove " + item.label().text() + "?"))
+			{
+				return;
+			}
+		}
+		
+		var i = this.items().indexOf(item);
+		this.items().remove(item);
+		this.items().slice(i).forEach(function(itemToMove, j){
+			itemToMove.setY(itemToMove.y() - item.height());
+		});
+		this.removeSubview(item);
+		this.setHeight(this.height() - item.height());
+		var itemToSelect = this.items()[i] || this.items().last();
+		if (itemToSelect)
+		{
+			this.selectItem(itemToSelect);
+		}
+	},
+	
+	selectedItem: function()
+	{
+		return this.items()[this.selectedItemIndex()];
+	},
+	
+	removeSelectedItem: function()
+	{
+		this.removeItem(this.selectedItem());
 	}
 });

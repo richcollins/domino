@@ -3,6 +3,7 @@ VerticalListView = TitledView.clone().newSlots({
 	scrollView: null,
 	controlsView: null,
 	addButton: null,
+	removeButton: null,
 	defaultItemText: "New Item"
 }).setSlots({
 	init: function()
@@ -14,15 +15,24 @@ VerticalListView = TitledView.clone().newSlots({
 			var addButton = Button.clone();
 			addButton.setFontWeight("bold");
 			addButton.setText("+");
-			//addButton.setColor(Color.withRGB(56, 117, 215));
 			addButton.setColor(Color.DimGray);
 			addButton.sizeToFit();
 			addButton.setX(addButton.fontSize());
 			addButton.setY(addButton.fontSize()/2);
-			addButton.setDelegate(this);
+			addButton.setDelegate(this, "addButton").setDelegatePrefix("add");
 			this.setAddButton(addButton);
+			
+			var removeButton = Button.clone();
+			removeButton.setFontWeight("bold");
+			removeButton.setText("−");
+			removeButton.setColor(Color.DimGray);
+			removeButton.sizeToFit();
+			removeButton.setX(2*addButton.fontSize() + addButton.width()/2);
+			removeButton.setY(addButton.fontSize()/2);
+			removeButton.setDelegate(this).setDelegatePrefix("remove");
+			this.setRemoveButton(removeButton);
 		
-			var selfWidth = Math.max(addButton.width() + 2*addButton.fontSize(), this.titleBar().width());
+			var selfWidth = Math.max(addButton.width() + removeButton.width() + 3*addButton.fontSize(), this.titleBar().width());
 		
 			var contentView = VerticalListContentView.clone();
 			contentView.setWidth(selfWidth);
@@ -63,10 +73,11 @@ VerticalListView = TitledView.clone().newSlots({
 			cv.addSubview(controlsView);
 			cv.addSubview(controlsDivider);
 			cv.addSubview(addButton);
+			cv.addSubview(removeButton);
 		}
 	},
 	
-	buttonClicked: function()
+	addButtonClicked: function()
 	{
 		var hMargin = VerticalListContentView.itemHMargin();
 		var vMargin = VerticalListContentView.itemVMargin();
@@ -96,6 +107,25 @@ VerticalListView = TitledView.clone().newSlots({
 		if (!this.shouldDockButton())
 		{
 			this.addButton().setHidden(true);
+			this.removeButton().setHidden(true);
+		}
+	},
+	
+	vlcv: function()
+	{
+		return this.scrollView().contentView();
+	},
+	
+	removeButtonClicked: function()
+	{
+		var items = this.vlcv().items();
+		var itemCount = items.length;
+		var selectedItem = this.vlcv().selectedItem();
+		this.vlcv().removeSelectedItem();
+		if (items.length != itemCount)
+		{
+			this.updateButtons();
+			this.delegatePerform("vlvRemovedItem", selectedItem);
 		}
 	},
 	
@@ -118,22 +148,36 @@ VerticalListView = TitledView.clone().newSlots({
 		return (this.scrollView().contentView().height() + this.addButton().height()) > this.scrollView().height()
 	},
 	
-	vlcvSelectedItem: function(contentView, item)
+	updateButtons: function()
 	{
 		if (this.shouldDockButton())
 		{
 			this.addButton().setY(this.scrollView().height() + this.controlsView().height()/2 - this.addButton().height()/2 - 2);
 			this.addButton().setResizesTop(true);
 			this.addButton().setResizesBottom(false);
+			
+			this.removeButton().setY(this.scrollView().height() + this.controlsView().height()/2 - this.removeButton().height()/2 - 2);
+			this.removeButton().setResizesTop(true);
+			this.removeButton().setResizesBottom(false);
 		}
 		else
 		{
 			this.addButton().setY(this.scrollView().contentView().height());
 			this.addButton().setResizesTop(false);
 			this.addButton().setResizesBottom(true);
+			
+			this.removeButton().setY(this.scrollView().contentView().height());
+			this.removeButton().setResizesTop(false);
+			this.removeButton().setResizesBottom(true);
 		}
 		
 		this.addButton().setHidden(false);
+		this.removeButton().setHidden(this.vlcv().items().length == 0);
+	},
+	
+	vlcvSelectedItem: function(contentView, item)
+	{
+		this.updateButtons();
 		this.delegatePerform("vlvSelectedItem", item);
 	},
 	
@@ -160,6 +204,12 @@ VerticalListView = TitledView.clone().newSlots({
 	cancelAdd: function()
 	{
 		this.addButton().setHidden(false);
+		this.removeButton().setHidden(false);
 		this.scrollView().contentView().removeLastItem();
+	},
+	
+	isEmpty: function()
+	{
+		return this.vlcv().items().length == 0;
 	}
 });

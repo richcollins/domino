@@ -12,15 +12,22 @@ SlotEditorView = TableView.clone().newSlots({
 	
 	setObject: function(object)
 	{
-		this._object = object;
-		
-		var rows = this.rows();
-		this.empty();
-		
-		var self = this;
-		object.editableSlots().forEach(function(editableSlot){
-			editableSlot.addTo(self);
-		});
+		if (!object)
+		{
+			this.empty();
+		}
+		else
+		{
+			this._object = object;
+
+			var rows = this.rows();
+			this.empty();
+
+			var self = this;
+			object.editableSlots().forEach(function(editableSlot){
+				editableSlot.addTo(self);
+			});
+		}
 	},
 	
 	midX: function()

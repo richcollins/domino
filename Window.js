@@ -18,6 +18,14 @@ Window = View.clone().newSlots({
 			Window.autoResize();
 		}
 		
+		/* Doesn't work for some reason.  Add it to html for now
+		var meta = document.createElement("meta");
+		meta.httpEquiv = "Content-Type";
+		meta.content = "text/html;charset=utf-8";
+		
+		document.head.appendChild(meta);
+		*/
+		
 		this.setInited(true);
 		this.delegatePerform("windowInited");
 	},

@@ -11,7 +11,7 @@ DropDown = View.clone().newSlots({
 		var e = this.element();
 		e.onchange = function(evt)
 		{
-			self.delegate() && self.delegate().conditionallyPerform("dropDownChanged", self);
+			self.delegatePerform("dropDownChanged");
 		}
 	},
 	
