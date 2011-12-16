@@ -60,5 +60,19 @@ Editable = Proto.clone().newSlots({
 		}
 		
 		return this;
+	},
+	
+	asObject: function()
+	{
+		var obj = {};
+		this.editableSlots().forEach(function(s){
+			obj[s.name()] = s.value();
+		});
+		return obj;
+	},
+	
+	asJson: function()
+	{
+		return JSON.stringify(this.asObject());
 	}
 });

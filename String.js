@@ -163,5 +163,26 @@ String.prototype.setSlotsIfAbsent(
 	{
 		var suffix = this.split(".").last();
 		return suffix;
+	},
+	
+	humanized: function() //someMethodName -> Some Method Name
+	{
+		var words = [];
+		var start = -1;
+		var capitalized = this.asCapitalized();
+		for (var i = 0; i < capitalized.length; i ++)
+		{
+			if (capitalized.slice(i, i + 1).match(/[A-Z]/))
+			{
+				var word = capitalized.slice(start, i);
+				if (word)
+				{
+					words.append(word);
+				}
+				start = i;
+			}
+		}
+		words.append(capitalized.slice(start, i));
+		return words.join(" ");
 	}
 });

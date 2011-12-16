@@ -12,7 +12,7 @@ EditableSlot = Proto.clone().newSlots({
 		if (!this._label)
 		{
 			var l = Label.clone();
-			l.setText(this.name());
+			l.setText(this.name().humanized());
 			l.sizeToFit();
 			this._label = l;
 		}
@@ -40,11 +40,16 @@ EditableSlot = Proto.clone().newSlots({
 		this.object().perform("set" + this.name().asCapitalized(), this.control().value());
 	},
 	
+	value: function()
+	{
+		return this.object().perform(this.name())
+	},
+	
 	addTo: function(slotEditorView)
 	{
 		var row = this.object().editableSlots().indexOf(this);
 		slotEditorView.addAtRowCol(this.label(), row, 0);
-		this.control().setValue(this.object().perform(this.name()));
+		this.control().setValue(this.value());
 		this.control().sizeToFit();
 		slotEditorView.addAtRowCol(this.control(), row, 1);
 	}
