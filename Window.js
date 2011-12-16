@@ -59,4 +59,4 @@ Window = View.clone().newSlots({
 
 window.addEventListener("load", function(){
 	Window.init();
-})
+});

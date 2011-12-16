@@ -22,6 +22,7 @@ Arguments_asArray = function(args)
 {
 	return Array.prototype.slice.call(args);
 }
+
 if (!Array.prototype.forEach)
 {
 	Array.prototype.forEach = function(fun /*, thisp*/)
@@ -196,7 +197,7 @@ Proto.setSlots(
 			slotsMap = args[0];
 		}
 	
-		for(slotName in slotsMap)
+		for(var slotName in slotsMap)
 		{
 			this.newSlot(slotName, slotsMap[slotName]);
 		}
@@ -290,6 +291,7 @@ Proto.setSlots(
 Proto.newSlot("type", "Proto");
 Proto.newSlot("sender", null);
 Proto.removeSlot = Proto.removeSlots;
+
 Browser = Proto.clone().setSlots(
 {
 	userAgent: function()
@@ -347,6 +349,7 @@ Browser = Proto.clone().setSlots(
 		return Uri.withString(window.location.href);
 	}
 });
+
 (function(){
 	for(var slotName in Proto)
 	{
@@ -367,6 +370,7 @@ Browser = Proto.clone().setSlots(
 		});
 	}
 })();
+
 Importer = Proto.clone().setType("Importer").newSlots({
 	basePath: null
 })
@@ -387,10 +391,11 @@ Importer = Proto.clone().setType("Importer").newSlots({
 			
 			path = path + ".js";
 			
-			document.write('<script src="' + path + '"></script>');
+			document.write('<script type=\"text/javascript\" src="' + path.replace("/", "\\/") + '"><\/script>');
 		}
 	}
 });
+
 Array.prototype.setSlotsIfAbsent(
 {
 	init: function()
@@ -997,6 +1002,7 @@ Array.prototype.setSlotsIfAbsent(
 		return null;
 	}
 });
+
 Number.prototype.setSlots(
 {
 	cssString: function() 
@@ -1033,6 +1039,7 @@ Number.prototype.setSlots(
 		return this % 2 == 0;
 	}
 });
+
 String.prototype.setSlotsIfAbsent(
 {
 	cssString: function() 
@@ -1198,8 +1205,30 @@ String.prototype.setSlotsIfAbsent(
 	{
 		var suffix = this.split(".").last();
 		return suffix;
+	},
+	
+	humanized: function() //someMethodName -> Some Method Name
+	{
+		var words = [];
+		var start = -1;
+		var capitalized = this.asCapitalized();
+		for (var i = 0; i < capitalized.length; i ++)
+		{
+			if (capitalized.slice(i, i + 1).match(/[A-Z]/))
+			{
+				var word = capitalized.slice(start, i);
+				if (word)
+				{
+					words.append(word);
+				}
+				start = i;
+			}
+		}
+		words.append(capitalized.slice(start, i));
+		return words.join(" ");
 	}
 });
+
 Color = Proto.clone().newSlots({
 	red: 0,
 	green: 0,
@@ -1225,15 +1254,21 @@ Color.setSlots({
 	DimGray: Color.clone().setRed(105).setGreen(105).setBlue(105),
 	Black: Color.clone(),
 });
+
 Delegator = Proto.clone().newSlots({
 	type: "Delegator",
 	delegate: null,
+	delegatePrefix: null,
 	messagesDelegate: true
 }).setSlots({
 	delegatePerform: function(message)
 	{
 		if (this.messagesDelegate())
 		{
+			if (this.delegatePrefix())
+			{
+				message = this.delegatePrefix() + message.asCapitalized();
+			}
 			var args = Arguments_asArray(arguments).slice(1);
 			args.unshift(this);
 
@@ -1246,6 +1281,7 @@ Delegator = Proto.clone().newSlots({
 		}
 	}
 });
+
 StyleSlot = Proto.clone().newSlots({
 	view: null,
 	name: null,
@@ -1279,24 +1315,28 @@ StyleSlot = Proto.clone().newSlots({
 		view.styleSlots().append(this);
 	}
 });
+
 ColorTransformation = Proto.clone().setSlots({
 	apply: function(color)
 	{
 		return "rgba(" + [color.red(), color.green(), color.blue(), color.alpha()].join(",") + ")";
 	}
 });
+
 SuffixTransformation = Proto.clone().setSlots({
 	apply: function(value)
 	{
 		return value + this.suffix;
 	}
 });
+
 RoundedSuffixTransformation = Proto.clone().setSlots({
 	apply: function(value)
 	{
 		return Math.round(value) + this.suffix;
 	}
 });
+
 View = Delegator.clone().newSlots({
 	type: "View",
 	superview: null,
@@ -1656,10 +1696,12 @@ View.setSlots({
 		this.sizeHeightToFit();
 	}
 });
+
 Window = View.clone().newSlots({
 	type: "Window",
 	lastResizeWidth: null,
-	lastResizeHeight: null
+	lastResizeHeight: null,
+	inited: false
 }).setSlots({
 	init: function()
 	{
@@ -1674,6 +1716,17 @@ Window = View.clone().newSlots({
 		{
 			Window.autoResize();
 		}
+		
+		/* Doesn't work for some reason.  Add it to html for now
+		var meta = document.createElement("meta");
+		meta.httpEquiv = "Content-Type";
+		meta.content = "text/html;charset=utf-8";
+		
+		document.head.appendChild(meta);
+		*/
+		
+		this.setInited(true);
+		this.delegatePerform("windowInited");
 	},
 	
 	createElement: function()
@@ -1702,6 +1755,10 @@ Window = View.clone().newSlots({
 		this.setLastResizeHeight(this.height());
 	}
 });
+
+window.addEventListener("load", function(){
+	Window.init();
+});
 Label = View.clone().newSlots({
 	type: "Label",
 	text: null
@@ -1720,6 +1777,7 @@ Label = View.clone().newSlots({
 		this.element().innerText = text;
 	}
 });
+
 TextField = Label.clone().newSlots({
 	type: "TextField"
 }).setSlots({
@@ -1794,6 +1852,7 @@ TextField = Label.clone().newSlots({
 		this.setText(value);
 	}
 });
+
 Button = Label.clone().newSlots({
 	type: "Button"
 }).setSlots({
@@ -1805,11 +1864,12 @@ Button = Label.clone().newSlots({
 		var e = this.element();
 		e.onclick = function()
 		{
-			self.delegate().conditionallyPerform("buttonClicked", self);
+			self.delegatePerform("buttonClicked");
 		}
 		e.style.cursor = "pointer";
 	}
 });
+
 CheckBox = View.clone().newSlots({
 	type: "CheckBox",
 	elementName: "input",
@@ -1868,6 +1928,7 @@ CheckBox = View.clone().newSlots({
 		this.setChecked(value);
 	}
 });
+
 DropDown = View.clone().newSlots({
 	type: "DropDown",
 	elementName: "select",
@@ -1881,7 +1942,7 @@ DropDown = View.clone().newSlots({
 		var e = this.element();
 		e.onchange = function(evt)
 		{
-			self.delegate() && self.delegate().conditionallyPerform("dropDownChanged", self);
+			self.delegatePerform("dropDownChanged");
 		}
 	},
 	
@@ -1922,6 +1983,7 @@ DropDown = View.clone().newSlots({
 		this.setSelectedOption(value);
 	}
 });
+
 ScrollView = View.clone().newSlots({
 	type: "ScrollView",
 	contentView: null
@@ -1952,6 +2014,7 @@ ScrollView = View.clone().newSlots({
 		this.element().scrollTop = this.contentView().height() - this.height();
 	}
 });
+
 TitledView = View.clone().newSlots({
 	type: "TitledView",
 	title: "",
@@ -1962,52 +2025,55 @@ TitledView = View.clone().newSlots({
 	{
 		View.init.call(this);
 		
-		var l = Label.clone();
-		l.setText("Title Bar");
-		l.sizeToFit();
-		l.resizeCentered();
-		
-		var tb = View.clone();
-		tb.setBackgroundColor(Color.LightGray);
-		tb.setWidth(l.width() + l.fontSize());
-		tb.setHeight(l.height() + l.fontSize());
-		tb.setResizesWidth(true);
-		tb.addSubview(l);
-		tb.newSlot("label", l);
-		
-		l.center();
-		this.setTitleBar(tb);
-		
-		var cv = View.clone();
-		cv.setWidth(tb.width());
-		cv.setHeight(1);
-		cv.setY(tb.height());
-		cv.setResizesWidth(true);
-		cv.setResizesHeight(true);
-		this.setContentView(cv);
-		
-		this.setWidth(tb.width());
-		this.setHeight(tb.height() + cv.height());
-		
-		var tbDivider = View.clone();
-		tbDivider.setBackgroundColor(Color.Gray);
-		tbDivider.setY(tb.height());
-		tbDivider.setWidth(tb.width());
-		tbDivider.setHeight(1);
-		tbDivider.setResizesWidth(true);
-		
-		var rightDivider = View.clone();
-		rightDivider.setBackgroundColor(Color.Gray);
-		rightDivider.setX(this.width() - 1);
-		rightDivider.setWidth(1);
-		rightDivider.setHeight(this.height());
-		rightDivider.setResizesLeft(true);
-		rightDivider.setResizesHeight(true);
-		
-		this.addSubview(tb);
-		this.addSubview(tbDivider);
-		this.addSubview(cv);
-		this.addSubview(rightDivider);
+		if (Window.inited())
+		{
+			var l = Label.clone();
+			l.setText("Title Bar");
+			l.sizeToFit();
+			l.resizeCentered();
+
+			var tb = View.clone();
+			tb.setBackgroundColor(Color.LightGray);
+			tb.setWidth(l.width() + l.fontSize());
+			tb.setHeight(l.height() + l.fontSize());
+			tb.setResizesWidth(true);
+			tb.addSubview(l);
+			tb.newSlot("label", l);
+
+			l.center();
+			this.setTitleBar(tb);
+
+			var cv = View.clone();
+			cv.setWidth(tb.width());
+			cv.setHeight(1);
+			cv.setY(tb.height());
+			cv.setResizesWidth(true);
+			cv.setResizesHeight(true);
+			this.setContentView(cv);
+
+			this.setWidth(tb.width());
+			this.setHeight(tb.height() + cv.height());
+
+			var tbDivider = View.clone();
+			tbDivider.setBackgroundColor(Color.Gray);
+			tbDivider.setY(tb.height());
+			tbDivider.setWidth(tb.width());
+			tbDivider.setHeight(1);
+			tbDivider.setResizesWidth(true);
+
+			var rightDivider = View.clone();
+			rightDivider.setBackgroundColor(Color.Gray);
+			rightDivider.setX(this.width() - 1);
+			rightDivider.setWidth(1);
+			rightDivider.setHeight(this.height());
+			rightDivider.setResizesLeft(true);
+			rightDivider.setResizesHeight(true);
+
+			this.addSubview(tb);
+			this.addSubview(tbDivider);
+			this.addSubview(cv);
+			this.addSubview(rightDivider);
+		}
 	},
 	
 	setTitle: function(title)
@@ -2019,13 +2085,14 @@ TitledView = View.clone().newSlots({
 		this._title = title;
 	}
 });
+
 TableView = View.clone().newSlots({
 	type: "TableView",
 	rows: [],
-	vMargin: 7,
-	hMargin: 7,
+	vMargin: 8,
+	hMargin: 10,
 	colAlignments: [],
-	rowAlignments: [],
+	rowAlignments: []
 }).setSlots({
 	init: function()
 	{
@@ -2126,12 +2193,12 @@ TableView = View.clone().newSlots({
 	
 	rowAlignment: function(rowNum)
 	{
-		return this.rowAlignments()[rowNum] || TableView.RowAlignmentBottom;
+		return this.rowAlignments()[rowNum] || this.defaultRowAlignment();
 	},
 	
 	colAlignment: function(colNum)
 	{
-		return this.colAlignments()[colNum] || TableView.ColAlignmentCenter;
+		return this.colAlignments()[colNum] || this.defaultColAlignment();
 	},
 	
 	applyLayout: function()
@@ -2186,12 +2253,18 @@ TableView = View.clone().newSlots({
 		}
 	}
 });
+
+TableView.newSlots({
+	defaultColAlignment: TableView.ColAlignmentCenter,
+	defaultRowAlignment: TableView.RowAlignmentMiddle
+});
 VerticalListContentView = View.clone().newSlots({
 	type: "VerticalListContentView",
 	items: [],
 	selectedItemIndex: null,
 	itemHMargin: 15,
-	itemVMargin: 15
+	itemVMargin: 15,
+	confirmsRemove: true
 }).setSlots({
 	init: function()
 	{
@@ -2226,8 +2299,7 @@ VerticalListContentView = View.clone().newSlots({
 	
 	addItem: function(itemView)
 	{
-		itemView.newSlot("itemIndex", this.items().length);
-		itemView.setY(itemView.itemIndex() * itemView.height());
+		itemView.setY(this.items().length * itemView.height());
 		this.setHeight(itemView.bottomEdge());
 		this.addSubview(itemView);
 		this.items().append(itemView);
@@ -2245,15 +2317,20 @@ VerticalListContentView = View.clone().newSlots({
 	{
 		if (this.selectedItemIndex() !== null)
 		{
-			var l = this.items()[this.selectedItemIndex()].label();
-			l.setColor(Color.Gray);
-			l.setFontWeight("normal");
+			var selectedItem = this.selectedItem();
+			if (selectedItem)
+			{
+				var l = selectedItem.label();
+				l.setColor(Color.Gray);
+				l.setFontWeight("normal");
+			}
 		}
 
 		var l = button.label();
 		l.setColor(Color.Black);
 		l.setFontWeight("bold");
-		this.setSelectedItemIndex(button.itemIndex());
+		
+		this.setSelectedItemIndex(this.items().indexOf(button));
 
 		this.delegatePerform("vlcvSelectedItem", button);
 	},
@@ -2261,74 +2338,123 @@ VerticalListContentView = View.clone().newSlots({
 	selectItem: function(item)
 	{
 		this.buttonClicked(item);
+	},
+	
+	removeItem: function(item)
+	{
+		if (this.confirmsRemove())
+		{
+			if (!confirm("Remove " + item.label().text() + "?"))
+			{
+				return;
+			}
+		}
+		
+		var i = this.items().indexOf(item);
+		this.items().remove(item);
+		this.items().slice(i).forEach(function(itemToMove, j){
+			itemToMove.setY(itemToMove.y() - item.height());
+		});
+		this.removeSubview(item);
+		this.setHeight(this.height() - item.height());
+		var itemToSelect = this.items()[i] || this.items().last();
+		if (itemToSelect)
+		{
+			this.selectItem(itemToSelect);
+		}
+	},
+	
+	selectedItem: function()
+	{
+		return this.items()[this.selectedItemIndex()];
+	},
+	
+	removeSelectedItem: function()
+	{
+		this.removeItem(this.selectedItem());
 	}
 });
+
 VerticalListView = TitledView.clone().newSlots({
 	type: "VerticalListView",
 	scrollView: null,
 	controlsView: null,
 	addButton: null,
+	removeButton: null,
 	defaultItemText: "New Item"
 }).setSlots({
 	init: function()
 	{
 		TitledView.init.call(this);
 		
-		var addButton = Button.clone();
-		addButton.setFontWeight("bold");
-		addButton.setText("+");
-		//addButton.setColor(Color.withRGB(56, 117, 215));
-		addButton.setColor(Color.DimGray);
-		addButton.sizeToFit();
-		addButton.setX(addButton.fontSize());
-		addButton.setY(addButton.fontSize()/2);
-		addButton.setDelegate(this);
-		this.setAddButton(addButton);
+		if (Window.inited())
+		{
+			var addButton = Button.clone();
+			addButton.setFontWeight("bold");
+			addButton.setText("+");
+			addButton.setColor(Color.DimGray);
+			addButton.sizeToFit();
+			addButton.setX(addButton.fontSize());
+			addButton.setY(addButton.fontSize()/2);
+			addButton.setDelegate(this, "addButton").setDelegatePrefix("add");
+			this.setAddButton(addButton);
+			
+			var removeButton = Button.clone();
+			removeButton.setFontWeight("bold");
+			removeButton.setText("−");
+			removeButton.setColor(Color.DimGray);
+			removeButton.sizeToFit();
+			removeButton.setX(2*addButton.fontSize() + addButton.width()/2);
+			removeButton.setY(addButton.fontSize()/2);
+			removeButton.setDelegate(this).setDelegatePrefix("remove");
+			this.setRemoveButton(removeButton);
 		
-		var selfWidth = Math.max(addButton.width() + 2*addButton.fontSize(), this.titleBar().width());
+			var selfWidth = Math.max(addButton.width() + removeButton.width() + 3*addButton.fontSize(), this.titleBar().width());
 		
-		var contentView = VerticalListContentView.clone();
-		contentView.setWidth(selfWidth);
-		contentView.setResizesWidth(true);
-		contentView.setDelegate(this);
+			var contentView = VerticalListContentView.clone();
+			contentView.setWidth(selfWidth);
+			contentView.setResizesWidth(true);
+			contentView.setDelegate(this);
 		
-		var scrollView = ScrollView.clone();
-		scrollView.setWidth(selfWidth);
-		scrollView.setHeight(1);
-		scrollView.setResizesHeight(true);
-		scrollView.setResizesWidth(true);
-		scrollView.setContentView(contentView);
-		this.setScrollView(scrollView);
+			var scrollView = ScrollView.clone();
+			scrollView.setWidth(selfWidth);
+			scrollView.setHeight(1);
+			scrollView.setResizesHeight(true);
+			scrollView.setResizesWidth(true);
+			scrollView.setContentView(contentView);
+			this.setScrollView(scrollView);
 		
-		var controlsView = View.clone();
-		controlsView.setBackgroundColor(Color.LightGray);
-		controlsView.setY(scrollView.height());
-		controlsView.setWidth(selfWidth);
-		controlsView.setHeight(addButton.height() + 0.5*addButton.fontSize());
-		controlsView.setResizesWidth(true);
-		controlsView.setResizesTop(true);
+			var controlsView = View.clone();
+			controlsView.setBackgroundColor(Color.LightGray);
+			controlsView.setY(scrollView.height());
+			controlsView.setWidth(selfWidth);
+			controlsView.setHeight(addButton.height() + 0.5*addButton.fontSize());
+			controlsView.setResizesWidth(true);
+			controlsView.setResizesTop(true);
 		
-		this.setControlsView(controlsView);
+			this.setControlsView(controlsView);
 		
-		var controlsDivider = View.clone();
-		controlsDivider.setBackgroundColor(Color.Gray);
-		controlsDivider.setY(controlsView.y() - 1);
-		controlsDivider.setWidth(selfWidth);
-		controlsDivider.setHeight(1);
-		controlsDivider.setResizesTop(true);
-		controlsDivider.setResizesWidth(true);
+			var controlsDivider = View.clone();
+			controlsDivider.setBackgroundColor(Color.Gray);
+			controlsDivider.setY(controlsView.y() - 1);
+			controlsDivider.setWidth(selfWidth);
+			controlsDivider.setHeight(1);
+			controlsDivider.setResizesTop(true);
+			controlsDivider.setResizesWidth(true);
 		
-		this.setWidth(selfWidth);
-		this.setHeight(this.titleBar().height() + scrollView.height() + controlsView.height());
+			this.setWidth(selfWidth);
+			this.setHeight(this.titleBar().height() + scrollView.height() + controlsView.height());
 		
-		var cv = this.contentView();
-		cv.addSubview(scrollView);
-		cv.addSubview(controlsView);
-		cv.addSubview(controlsDivider);
-		cv.addSubview(addButton);
+			var cv = this.contentView();
+			cv.addSubview(scrollView);
+			cv.addSubview(controlsView);
+			cv.addSubview(controlsDivider);
+			cv.addSubview(addButton);
+			cv.addSubview(removeButton);
+		}
 	},
 	
-	buttonClicked: function()
+	addButtonClicked: function()
 	{
 		var hMargin = VerticalListContentView.itemHMargin();
 		var vMargin = VerticalListContentView.itemVMargin();
@@ -2358,6 +2484,25 @@ VerticalListView = TitledView.clone().newSlots({
 		if (!this.shouldDockButton())
 		{
 			this.addButton().setHidden(true);
+			this.removeButton().setHidden(true);
+		}
+	},
+	
+	vlcv: function()
+	{
+		return this.scrollView().contentView();
+	},
+	
+	removeButtonClicked: function()
+	{
+		var items = this.vlcv().items();
+		var itemCount = items.length;
+		var selectedItem = this.vlcv().selectedItem();
+		this.vlcv().removeSelectedItem();
+		if (items.length != itemCount)
+		{
+			this.updateButtons();
+			this.delegatePerform("vlvRemovedItem", selectedItem);
 		}
 	},
 	
@@ -2380,22 +2525,36 @@ VerticalListView = TitledView.clone().newSlots({
 		return (this.scrollView().contentView().height() + this.addButton().height()) > this.scrollView().height()
 	},
 	
-	vlcvSelectedItem: function(contentView, item)
+	updateButtons: function()
 	{
 		if (this.shouldDockButton())
 		{
 			this.addButton().setY(this.scrollView().height() + this.controlsView().height()/2 - this.addButton().height()/2 - 2);
 			this.addButton().setResizesTop(true);
 			this.addButton().setResizesBottom(false);
+			
+			this.removeButton().setY(this.scrollView().height() + this.controlsView().height()/2 - this.removeButton().height()/2 - 2);
+			this.removeButton().setResizesTop(true);
+			this.removeButton().setResizesBottom(false);
 		}
 		else
 		{
 			this.addButton().setY(this.scrollView().contentView().height());
 			this.addButton().setResizesTop(false);
 			this.addButton().setResizesBottom(true);
+			
+			this.removeButton().setY(this.scrollView().contentView().height());
+			this.removeButton().setResizesTop(false);
+			this.removeButton().setResizesBottom(true);
 		}
 		
 		this.addButton().setHidden(false);
+		this.removeButton().setHidden(this.vlcv().items().length == 0);
+	},
+	
+	vlcvSelectedItem: function(contentView, item)
+	{
+		this.updateButtons();
 		this.delegatePerform("vlvSelectedItem", item);
 	},
 	
@@ -2422,9 +2581,16 @@ VerticalListView = TitledView.clone().newSlots({
 	cancelAdd: function()
 	{
 		this.addButton().setHidden(false);
+		this.removeButton().setHidden(false);
 		this.scrollView().contentView().removeLastItem();
+	},
+	
+	isEmpty: function()
+	{
+		return this.vlcv().items().length == 0;
 	}
 });
+
 Editable = Proto.clone().newSlots({
 	type: "Editable",
 	watchesSlots: true,
@@ -2487,17 +2653,23 @@ Editable = Proto.clone().newSlots({
 		}
 		
 		return this;
-	}
-});
-EditableCheckBoxSlot = EditableSlot.clone().newSlots({
-	type: "EditableCheckBoxSlot",
-	controlProto: CheckBox
-}).setSlots({
-	checkBoxChanged: function(dd)
+	},
+	
+	asObject: function()
 	{
-		this.updateValue();
+		var obj = {};
+		this.editableSlots().forEach(function(s){
+			obj[s.name()] = s.value();
+		});
+		return obj;
+	},
+	
+	asJson: function()
+	{
+		return JSON.stringify(this.asObject());
 	}
 });
+
 EditableSlot = Proto.clone().newSlots({
 	type: "EditableSlot",
 	object: null,
@@ -2512,7 +2684,7 @@ EditableSlot = Proto.clone().newSlots({
 		if (!this._label)
 		{
 			var l = Label.clone();
-			l.setText(this.name());
+			l.setText(this.name().humanized());
 			l.sizeToFit();
 			this._label = l;
 		}
@@ -2540,15 +2712,57 @@ EditableSlot = Proto.clone().newSlots({
 		this.object().perform("set" + this.name().asCapitalized(), this.control().value());
 	},
 	
+	value: function()
+	{
+		return this.object().perform(this.name())
+	},
+	
 	addTo: function(slotEditorView)
 	{
 		var row = this.object().editableSlots().indexOf(this);
 		slotEditorView.addAtRowCol(this.label(), row, 0);
-		this.control().setValue(this.object().perform(this.name()));
+		this.control().setValue(this.value());
 		this.control().sizeToFit();
 		slotEditorView.addAtRowCol(this.control(), row, 1);
 	}
 });
+
+EditableCheckBoxSlot = EditableSlot.clone().newSlots({
+	type: "EditableCheckBoxSlot",
+	controlProto: CheckBox
+}).setSlots({
+	checkBoxChanged: function(dd)
+	{
+		this.updateValue();
+	}
+});
+
+EditableDropDownSlot = EditableSlot.clone().newSlots({
+	type: "EditableDropDownSlot",
+	options: [],
+	controlProto: DropDown
+}).setSlots({
+	init: function()
+	{
+		this.setOptions(this.options().copy());
+	},
+	
+	control: function()
+	{
+		if (!this._control)
+		{
+			var c = EditableSlot.control.call(this);
+			c.setOptions(this.options());
+		}
+		return this._control;
+	},
+	
+	dropDownChanged: function(dd)
+	{
+		this.updateValue();
+	}
+});
+
 SlotEditorView = TableView.clone().newSlots({
 	type: "PropertyEditorView",
 	object: null
@@ -2563,17 +2777,30 @@ SlotEditorView = TableView.clone().newSlots({
 	
 	setObject: function(object)
 	{
-		this._object = object;
-		
-		var rows = this.rows();
-		this.empty();
-		
-		var self = this;
-		object.editableSlots().forEach(function(editableSlot){
-			editableSlot.addTo(self);
-		});
+		if (!object)
+		{
+			this.empty();
+		}
+		else
+		{
+			this._object = object;
+
+			var rows = this.rows();
+			this.empty();
+
+			var self = this;
+			object.editableSlots().forEach(function(editableSlot){
+				editableSlot.addTo(self);
+			});
+		}
+	},
+	
+	midX: function()
+	{
+		return this.colWidth(0) + this.hMargin() + this.hMargin()/2;
 	}
 });
+
 HttpResponse = Proto.clone().newSlots({
 	type: "HttpResponse",
 	body: null,
@@ -2585,6 +2812,7 @@ HttpResponse = Proto.clone().newSlots({
 		return sc >= 200 && sc < 300;
 	}
 });
+
 HttpRequest = Delegator.clone().newSlots({
 	type: "HttpRequest",
 	method: "GET",
@@ -2616,5 +2844,19 @@ HttpRequest = Delegator.clone().newSlots({
 			}
 		}
 		xhr.send(this.body());
+	}
+});
+
+App = Proto.clone().newSlots({
+	type: "App"
+}).setSlots({
+	init: function()
+	{
+		Window.setDelegate(this);
+	},
+	
+	windowInited: function()
+	{
+		this.start();
 	}
 });
