@@ -1,6 +1,6 @@
 ColorTransformation = Proto.clone().setSlots({
 	apply: function(color)
 	{
-		return "rgba(" + [color.red(), color.green(), color.blue(), color.alpha()].join(",") + ")";
+		return "rgba(" + [color.red()*255, color.green()*255, color.blue()*255, color.alpha()].join(",") + ")";
 	}
 });

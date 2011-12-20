@@ -141,6 +141,51 @@ Proto.setSlots(
 		}
 		return this;
 	},
+	
+	newLazySlot: function(name, initialValue)
+	{
+		this[name] = function()
+		{
+			if (this["_" + name] === undefined)
+			{
+				this["_" + name] = initialValue;
+			}
+			
+			return this["_" + name];
+		}
+		
+		this["set" + name.asCapitalized()] = function(newValue)
+		{
+			this["_" + name] = newValue;
+			return this;
+		}
+		return this;
+	},
+	
+	newLazySlots: function()
+	{
+		var args = this.argsAsArray(arguments);
+
+		var slotsMap = {};
+	
+		if(args.length > 1 || typeof(args[0]) == "string")
+		{
+			args.forEach(function(slotName)
+			{
+				slotsMap[slotName] = null;
+			})
+		}
+		else
+		{
+			slotsMap = args[0];
+		}
+	
+		for(var slotName in slotsMap)
+		{
+			this.newLazySlot(slotName, slotsMap[slotName]);
+		}
+		return this;
+	},
 
 	aliasSlot: function(slotName, aliasName)
 	{
@@ -260,6 +305,25 @@ Proto.setSlots(
 		}
 		
 		return this;
+	},
+	
+	slotsObject: function()
+	{
+		var o = {};
+		for (var name in this)
+		{
+			if (name.beginsWith("_"))
+			{
+				o[name.after("_")] = this[name];
+			}
+		}
+		
+		delete o.proto;
+		delete o.sender;
+		delete o.type;
+		delete o.uniqueId;
+		
+		return o;
 	}
 });
 

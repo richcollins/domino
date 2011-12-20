@@ -4,22 +4,27 @@ Color = Proto.clone().newSlots({
 	blue: 0,
 	alpha: 1
 }).setSlots({
-	withRGB: function(r, g, b)
+	withRGBA: function(r, g, b, a)
 	{
 		var c = this.clone();
 		c.setRed(r);
 		c.setGreen(g);
 		c.setBlue(b);
+		c.setAlpha(a);
 		return c;
+	},
+	
+	withRGB: function(r, g, b)
+	{
+		return this.withRGBA(r, g, b, 1);
 	}
 });
 
 Color.setSlots({
 	Transparent: Color.clone().setAlpha(0),
-	White: Color.clone().setRed(255).setGreen(255).setBlue(255),
-	LightGray: Color.clone().setRed(212).setGreen(212).setBlue(212),
-	//DarkGray: Color.clone().setRed(168).setGreen(168).setBlue(168),
-	Gray: Color.clone().setRed(127).setGreen(127).setBlue(127),
-	DimGray: Color.clone().setRed(105).setGreen(105).setBlue(105),
+	White: Color.clone().setRed(1).setGreen(1).setBlue(1),
+	LightGray: Color.clone().setRed(212/255).setGreen(212/255).setBlue(212/255),
+	Gray: Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
+	DimGray: Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
 	Black: Color.clone(),
 });

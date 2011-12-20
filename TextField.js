@@ -22,9 +22,10 @@ TextField = Label.clone().newSlots({
 		
 		e.onblur = function(evt)
 		{
-			if (!(self.delegate() && self.delegate().canPerform("textFieldShouldEndEditing")) || self.delegatePerform("textFieldShouldEndEditing"))
+			
+			if (!(self.delegate() && self.delegate().canPerform(self.delegateMessageName("shouldEndEditing"))) || self.delegatePerform("shouldEndEditing"))
 			{
-				self.delegatePerform("textFieldEditingEnded", self);
+				self.delegatePerform("editingEnded", self);
 			}
 			else
 			{

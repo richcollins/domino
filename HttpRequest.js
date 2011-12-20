@@ -8,6 +8,7 @@ HttpRequest = Delegator.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
+		Delegator.init.call(this);
 		this.setXmlHttpRequest(new XMLHttpRequest());
 	},
 	
@@ -25,7 +26,7 @@ HttpRequest = Delegator.clone().newSlots({
 				response.setStatusCode(xhr.status);
 				self.setResponse(response);
 				
-				self.delegatePerform("httpRequestCompleted");
+				self.delegatePerform("completed");
 			}
 		}
 		xhr.send(this.body());

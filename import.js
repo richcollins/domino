@@ -7,6 +7,7 @@ Importer.importPaths([
 	"Array",
 	"Number",
 	"String",
+	"Node",
 	
 	"Color",
 	"Delegator",
@@ -26,6 +27,9 @@ Importer.importPaths([
 	"TableView",
 	"VerticalListContentView",
 	"VerticalListView",
+	"ImageView",
+	"BorderedButton",
+	"VideoView",
 	
 	"Editable",
 	"EditableSlot",

@@ -30,7 +30,7 @@ CheckBox = View.clone().newSlots({
 		{
 			this._checked = checked;
 			this.element().checked = checked;
-			this.delegatePerform("checkBoxChanged");
+			this.delegatePerform("changed");
 		}
 	},
 	

@@ -37,12 +37,15 @@ View = Delegator.clone().newSlots({
 	width: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	height: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	backgroundColor: { value: Color.Transparent, transformation: { name: "color" } },
-	visibility: "visible"
+	visibility: { value: "visible" },
+	zIndex: { value: 0 }
 });
 
 View.setSlots({
 	init: function()
 	{
+		Delegator.init.call(this);
+		
 		this.setStyleSlots(this.styleSlots().copy());
 		this.createElement();
 		this.initElement();
@@ -68,11 +71,37 @@ View.setSlots({
 	setHidden: function(hidden)
 	{
 		this.setVisibility(hidden ? "hidden" : "visible");
+		this.subviews().forEachPerform("setVisibility", this.visibility());
 	},
 	
 	hidden: function()
 	{
 		return this.visibility() == "hidden";
+	},
+	
+	show: function()
+	{
+		this.setHidden(false);
+		return this;
+	},
+	
+	hide: function()
+	{
+		this.setHidden(true);
+		return this;
+	},
+	
+	addEventListener: function(name, fn)
+	{
+		var e = this.element();
+		if (e.addEventListener)
+		{
+			e.addEventListener(name, fn, false);
+		}
+		else
+		{
+			e.attachEvent(name, fn);
+		}
 	},
 	
 	preventDefault: function(evt)
@@ -321,6 +350,23 @@ View.setSlots({
 		this.setResizesHeight(true);
 	},
 	
+	scaleToFitSuperview: function()
+	{
+		var superview = this.superview();
+		var aspectRatio = this.width() / this.height();
+
+		if(aspectRatio > superview.width()/superview.height())
+		{
+			this.setWidth(superview.width());
+			this.setHeight(superview.width() / aspectRatio);
+		}
+		else
+		{
+			this.setWidth(superview.height() * aspectRatio);
+			this.setHeight(superview.height());
+		}
+	},
+	
 	sizingElement: function()
 	{
 		var e = this.element().cloneNode(true);
@@ -355,5 +401,10 @@ View.setSlots({
 	{
 		this.sizeWidthToFit();
 		this.sizeHeightToFit();
+	},
+	
+	moveToBack: function()
+	{
+		this.setZIndex(this.superview().subviews().mapPerform("zIndex").min() - 1);
 	}
 });

@@ -5,11 +5,13 @@ Button = Label.clone().newSlots({
 	{
 		View.initElement.call(this);
 		
+		this.setTextAlign("center");
+		
 		var self = this;
 		var e = this.element();
 		e.onclick = function()
 		{
-			self.delegatePerform("buttonClicked");
+			self.delegatePerform("clicked");
 		}
 		e.style.cursor = "pointer";
 	}

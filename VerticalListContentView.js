@@ -72,7 +72,7 @@ VerticalListContentView = View.clone().newSlots({
 		
 		this.setSelectedItemIndex(this.items().indexOf(button));
 
-		this.delegatePerform("vlcvSelectedItem", button);
+		this.delegatePerform("selectedItem", button);
 	},
 	
 	selectItem: function(item)

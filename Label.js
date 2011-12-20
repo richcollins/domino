@@ -8,7 +8,9 @@ Label = View.clone().newSlots({
 	textDecoration: { value: "none" },
 	color: { value: Color.Black, transformation: { name: "color" } },
 	textOverflow: { value: "ellipsis" },
-	whiteSpace: { value: "pre" }
+	whiteSpace: { value: "pre" },
+	textAlign: { value: "left" },
+	lineHeight: { value: "" }
 }).setSlots({
 	setText: function(text)
 	{

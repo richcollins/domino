@@ -4,22 +4,38 @@ Delegator = Proto.clone().newSlots({
 	delegatePrefix: null,
 	messagesDelegate: true
 }).setSlots({
-	delegatePerform: function(message)
+	init: function()
+	{
+		this.setDelegatePrefix(this.type().asUncapitalized());
+	},
+	
+	delegateMessageName: function(messageName)
+	{
+		var prefix = this.delegatePrefix();
+		if (prefix && !messageName.beginsWith(prefix))
+		{
+			return this.delegatePrefix() + messageName.asCapitalized();
+		}
+		else
+		{
+			return messageName;
+		}
+	},
+	
+	delegatePerform: function(messageName)
 	{
 		if (this.messagesDelegate())
 		{
-			if (this.delegatePrefix())
-			{
-				message = this.delegatePrefix() + message.asCapitalized();
-			}
 			var args = Arguments_asArray(arguments).slice(1);
 			args.unshift(this);
 
 			var d = this.delegate();
 
-			if (d && d.canPerform(message))
+			messageName = this.delegateMessageName(messageName)
+			
+			if (d && d.canPerform(messageName))
 			{
-				return d.performWithArgList(message, args);
+				return d.performWithArgList(messageName, args);
 			}
 		}
 	}

@@ -27,7 +27,7 @@ Window = View.clone().newSlots({
 		*/
 		
 		this.setInited(true);
-		this.delegatePerform("windowInited");
+		this.delegatePerform("inited");
 	},
 	
 	createElement: function()

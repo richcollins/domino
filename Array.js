@@ -98,12 +98,6 @@ Array.prototype.setSlotsIfAbsent(
 		return this[this.length - 1];
 	},
 
-	pushIfAbsent: function()
-	{
-		console.log("pushIfAbsent is deprecated.  Use appendIfAbsent instead.");
-		return this.appendIfAbsent.apply(this, arguments);
-	},
-
 	appendIfAbsent: function()
 	{
 		var self = this;
@@ -188,7 +182,7 @@ Array.prototype.setSlotsIfAbsent(
 		return this.forEachCall.apply(this, arguments);
 	},
 
-	sortByCalling: function(functionName)
+	sortPerform: function(functionName)
 	{
 		var args = this.argsAsArray(arguments).slice(1);
 		return this.sort(function(x, y)
@@ -210,12 +204,6 @@ Array.prototype.setSlotsIfAbsent(
 		});
 	},
 
-	mapByCalling: function()
-	{
-		console.log("mapByCalling is deprecated.  Use mapByPerforming instead.");
-		return this.mapByPerforming.apply(this, arguments);
-	},
-
 	mapPerform: function(messageName)
 	{
 		var args = this.argsAsArray(arguments).slice(1);
@@ -227,13 +215,7 @@ Array.prototype.setSlotsIfAbsent(
 		});
 	},
 
-	detectByCalling: function()
-	{
-		console.log("detectByCalling is deprecated.  Use detectByPerforming instead.");
-		return this.detectByPerforming.apply(this, arguments);
-	},
-
-	detectByPerforming: function(functionName)
+	detectPerform: function(functionName)
 	{
 		var args = this.argsAsArray(arguments).slice(1);
 		return this.detect(function(e, i)
@@ -304,7 +286,7 @@ Array.prototype.setSlotsIfAbsent(
 		return res;
 	},
 
-	filterByPerforming: function(messageName)
+	filterPerform: function(messageName)
 	{
 		var args = this.argsAsArray(arguments).slice(1);
 		args.push(0);
@@ -564,12 +546,6 @@ Array.prototype.setSlotsIfAbsent(
 		}
 
 		return true;
-	},
-
-	elementWith: function(accessorFunctionName, value)
-	{
-		var e = this[this.mapPerform(accessorFunctionName).indexOf(value)];
-		return e === undefined ? null : e;
 	},
 
 	atInsert: function(i, e)

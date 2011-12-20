@@ -83,15 +83,27 @@ String.prototype.setSlotsIfAbsent(
 	before: function(aString)
 	{
 		var index = this.indexOf(aString);
-		if(index == -1) return this;
-		return this.slice(0, index); 
+		if(index == -1)
+		{
+			return null;
+		}
+		else
+		{
+			return this.slice(0, index);
+		}
 	},
 
 	after: function(aString)
 	{
 		var index = this.indexOf(aString);
-		if(index == -1) return this;
-		return this.slice(index+1);
+		if(index == -1)
+		{
+			return null;
+		}
+		else
+		{
+			return this.slice(index + aString.length);
+		}
 	},
 
 	asUncapitalized: function()
@@ -184,5 +196,25 @@ String.prototype.setSlotsIfAbsent(
 		}
 		words.append(capitalized.slice(start, i));
 		return words.join(" ");
+	},
+	
+	base64Encoded: function()
+	{
+		return btoa(this);
+	},
+	
+	base64UrlEncoded: function()
+	{
+		return this.base64Encoded().replace('+', '-').replace('/', '_').replace('=', ',');
+	},
+	
+	base64Decoded: function()
+	{
+		return atob(this);
+	},
+	
+	base64UrlDecoded: function()
+	{
+		return this.replace('-', '+').replace('_', '/').replace(',', '=').base64Decoded();
 	}
 });

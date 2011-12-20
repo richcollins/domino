@@ -19,7 +19,7 @@ VerticalListView = TitledView.clone().newSlots({
 			addButton.sizeToFit();
 			addButton.setX(addButton.fontSize());
 			addButton.setY(addButton.fontSize()/2);
-			addButton.setDelegate(this, "addButton").setDelegatePrefix("add");
+			addButton.setDelegate(this, "addButton").setDelegatePrefix("addButton");
 			this.setAddButton(addButton);
 			
 			var removeButton = Button.clone();
@@ -29,7 +29,7 @@ VerticalListView = TitledView.clone().newSlots({
 			removeButton.sizeToFit();
 			removeButton.setX(2*addButton.fontSize() + addButton.width()/2);
 			removeButton.setY(addButton.fontSize()/2);
-			removeButton.setDelegate(this).setDelegatePrefix("remove");
+			removeButton.setDelegate(this).setDelegatePrefix("removeButton");
 			this.setRemoveButton(removeButton);
 		
 			var selfWidth = Math.max(addButton.width() + removeButton.width() + 3*addButton.fontSize(), this.titleBar().width());
@@ -38,6 +38,7 @@ VerticalListView = TitledView.clone().newSlots({
 			contentView.setWidth(selfWidth);
 			contentView.setResizesWidth(true);
 			contentView.setDelegate(this);
+			contentView.setDelegatePrefix("vlcv");
 		
 			var scrollView = ScrollView.clone();
 			scrollView.setWidth(selfWidth);
@@ -125,13 +126,13 @@ VerticalListView = TitledView.clone().newSlots({
 		if (items.length != itemCount)
 		{
 			this.updateButtons();
-			this.delegatePerform("vlvRemovedItem", selectedItem);
+			this.delegatePerform("removedItem", selectedItem);
 		}
 	},
 	
 	textFieldShouldEndEditing: function(textField)
 	{
-		return !(this.delegate() && this.delegate().canPerform("vlvShouldAddItemWithText")) || this.delegatePerform("vlvShouldAddItemWithText", textField.text());
+		return !(this.delegate() && this.delegate().canPerform(this.delegateMessageName("shouldAddItemWithText"))) || this.delegatePerform("shouldAddItemWithText", textField.text());
 	},
 	
 	textFieldEditingEnded: function(textField)
