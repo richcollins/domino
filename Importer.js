@@ -1,7 +1,6 @@
 Importer = Proto.clone().setType("Importer").newSlots({
 	basePath: null
-})
-.setSlots(
+}).setSlots(
 {
 	importPaths: function(paths)
 	{

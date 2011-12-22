@@ -40,7 +40,7 @@ Editable = Proto.clone().newSlots({
 				var editableSlot = window["Editable" + description.control.type.asCapitalized() + "Slot"].clone();
 				var control = Object_shallowCopy(description.control);
 				delete control.type;
-				editableSlot.performSets(control);
+				editableSlot.control().performSets(control);
 				editableSlot.setName(name);
 				editableSlot.setObject(this);
 				this.editableSlots().append(editableSlot);

@@ -35,6 +35,7 @@ Importer.importPaths([
 	"EditableSlot",
 	"EditableCheckBoxSlot",
 	"EditableDropDownSlot",
+	"EditableTextFieldSlot",
 	"SlotEditorView",
 	
 	"HttpResponse",

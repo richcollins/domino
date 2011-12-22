@@ -5,7 +5,7 @@ EditableSlot = Proto.clone().newSlots({
 	label: null,
 	control: null,
 	slotEditorView: null,
-	controlProto: TextField
+	controlProto: null
 }).setSlots({
 	label: function()
 	{
@@ -30,11 +30,6 @@ EditableSlot = Proto.clone().newSlots({
 		return this._control;
 	},
 	
-	textFieldEditingEnded: function(tf)
-	{
-		this.updateValue();
-	},
-	
 	updateValue: function(v)
 	{
 		this.object().perform("set" + this.name().asCapitalized(), this.control().value());
@@ -52,5 +47,6 @@ EditableSlot = Proto.clone().newSlots({
 		this.control().setValue(this.value());
 		this.control().sizeToFit();
 		slotEditorView.addAtRowCol(this.control(), row, 1);
+		this.setSlotEditorView(slotEditorView);
 	}
 });
