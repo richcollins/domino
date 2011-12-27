@@ -9,6 +9,11 @@ Delegator = Proto.clone().newSlots({
 		this.setDelegatePrefix(this.type().asUncapitalized());
 	},
 	
+	delegateWith: function(slots)
+	{
+		this.setDelegate(Proto.clone().setSlots(slots));
+	},
+	
 	delegateMessageName: function(messageName)
 	{
 		var prefix = this.delegatePrefix();

@@ -1,5 +1,6 @@
 Importer = Proto.clone().setType("Importer").newSlots({
-	basePath: null
+	basePath: null,
+	addsTimestamp: false
 }).setSlots(
 {
 	importPaths: function(paths)
@@ -17,7 +18,8 @@ Importer = Proto.clone().setType("Importer").newSlots({
 			
 			path = path + ".js";
 			
-			document.write('<script type=\"text/javascript\" src="' + path.replace("/", "\\/") + '"><\/script>');
+			var script = '<script type="text/javascript" src="' + path + (this.addsTimestamp() ? ("?" + new Date().getTime()) : "") + '"><\/script>';
+			document.write(script);
 		}
 	}
 });

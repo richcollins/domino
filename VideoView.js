@@ -5,8 +5,17 @@ VideoView = View.clone().newSlots({
 	nativeHeight: null,
 	duration: null,
 	elementName: "video",
-	inline: false
+	inline: false,
+	canPlay: false
 }).setSlots({
+	/*
+	createElement: function()
+	{
+		document.write('<video id="videoView" webkit-playsinline style="position:absolute;"></video>');
+		this.setElement(document.getElementById("videoView"));
+	},
+	*/
+	
 	initElement: function()
 	{
 		View.initElement.call(this);
@@ -15,6 +24,7 @@ VideoView = View.clone().newSlots({
 		var e = this.element();
 		
 		this.addEventListener("canplay", function(){
+			self.setCanPlay(true);
 			self.delegatePerform("canPlay");
 		});
 		
@@ -76,5 +86,15 @@ VideoView = View.clone().newSlots({
 	play: function()
 	{
 		this.element().play();
+	},
+	
+	pause: function()
+	{
+		this.element().pause();
+	},
+	
+	mute: function()
+	{
+		this.element().muted = true;
 	}
 });

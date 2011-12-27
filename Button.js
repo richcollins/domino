@@ -14,5 +14,12 @@ Button = Label.clone().newSlots({
 			self.delegatePerform("clicked");
 		}
 		e.style.cursor = "pointer";
+	},
+	
+	simulateClick: function()
+	{
+		var clickEvent = document.createEvent("MouseEvents");
+		clickEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+		this.element().dispatchEvent(clickEvent);
 	}
 });
