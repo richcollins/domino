@@ -11,8 +11,11 @@ VideoView = View.clone().newSlots({
 	/*
 	createElement: function()
 	{
-		document.write('<video id="videoView" webkit-playsinline style="position:absolute;"></video>');
-		this.setElement(document.getElementById("videoView"));
+		document.write('<video id="videoView" webkit-playsinline style="position:absolute;overflow:hidden"></video>');
+		var e = document.getElementById("videoView");
+		e.parentNode.removeChild(e);
+		e.removeAttribute("id");
+		this.setElement(e);
 	},
 	*/
 	
@@ -80,11 +83,13 @@ VideoView = View.clone().newSlots({
 	
 	load: function()
 	{
+		this.setInline(this.inline());
 		this.element().load();
 	},
 	
 	play: function()
 	{
+		this.setInline(this.inline()); //hack - o.w. it doesn't always play inline :-/
 		this.element().play();
 	},
 	

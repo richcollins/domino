@@ -149,6 +149,8 @@ View.setSlots({
 		subview.setSuperview(this);
 		this.subviews().append(subview);
 		this.element().appendChild(subview.element());
+		
+		//subview.conditionallyPerform("didAddToSuperview");
 	},
 	
 	addSubviews: function()

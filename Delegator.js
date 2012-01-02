@@ -11,7 +11,7 @@ Delegator = Proto.clone().newSlots({
 	
 	delegateWith: function(slots)
 	{
-		this.setDelegate(Proto.clone().setSlots(slots));
+		return this.setDelegate(Proto.clone().setSlots(slots));
 	},
 	
 	delegateMessageName: function(messageName)
