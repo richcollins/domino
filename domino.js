@@ -2757,6 +2757,8 @@ VerticalListView = TitledView.clone().newSlots({
 			cv.addSubview(controlsDivider);
 			cv.addSubview(addButton);
 			cv.addSubview(removeButton);
+			
+			this.updateButtons();
 		}
 	},
 	
@@ -2845,17 +2847,34 @@ VerticalListView = TitledView.clone().newSlots({
 		}
 		else
 		{
-			this.addButton().setY(this.scrollView().contentView().height());
+			var y = this.scrollView().contentView().height();
+			if (y == 0)
+			{
+				y = 8;
+			}
+			
+			this.addButton().setY(y);
 			this.addButton().setResizesTop(false);
 			this.addButton().setResizesBottom(true);
 			
-			this.removeButton().setY(this.scrollView().contentView().height());
+			this.removeButton().setY(y);
 			this.removeButton().setResizesTop(false);
 			this.removeButton().setResizesBottom(true);
 		}
 		
 		this.addButton().setHidden(false);
 		this.removeButton().setHidden(this.vlcv().items().length == 0);
+	},
+	
+	setHeight: function(h)
+	{
+		TitledView.setHeight.call(this, h);
+		if (this.scrollView())
+		{
+			this.updateButtons();
+		}
+		
+		return this;
 	},
 	
 	vlcvSelectedItem: function(contentView, item)
