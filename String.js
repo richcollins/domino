@@ -205,7 +205,7 @@ String.prototype.setSlotsIfAbsent(
 	
 	base64UrlEncoded: function()
 	{
-		return this.base64Encoded().replace('+', '-').replace('/', '_').replace('=', ',');
+		return this.base64Encoded().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, ',');
 	},
 	
 	base64Decoded: function()
@@ -215,6 +215,6 @@ String.prototype.setSlotsIfAbsent(
 	
 	base64UrlDecoded: function()
 	{
-		return this.replace('-', '+').replace('_', '/').replace(',', '=').base64Decoded();
+		return this.replace(/-/g, '+').replace(/_/g, '/').replace(/,/g, '=').base64Decoded();
 	}
 });

@@ -55,6 +55,13 @@ BorderedButton = Button.clone().newSlots({
 		return this;
 	},
 	
+	sizeWidthToFit: function()
+	{
+		Button.sizeWidthToFit.call(this);
+		w = this.width() + Math.max(this.leftBorderWidth() + this.rightBorderWidth(), 2*this.fontSize());
+		this.setWidth(w);
+	},
+	
 	updateStyle: function()
 	{
 		var style = this.element().style;

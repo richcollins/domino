@@ -1,7 +1,8 @@
 TextField = Label.clone().newSlots({
 	type: "TextField",
+	elementName: "input",
 	placeholderText: "Enter Text",
-	placeholderTextColor: Color.LightGray,
+	placeholderTextColor: Color.Gray,
 	growsToFit: true
 }).setSlots({
 	initElement: function()
@@ -9,8 +10,9 @@ TextField = Label.clone().newSlots({
 		View.initElement.call(this);
 		
 		var e = this.element();
-		e.contentEditable = true;
-		e.style.outline = "none";
+		
+		e.style.margin = "";
+		e.style.padding = "";
 		
 		var self = this;
 		e.onkeydown = function(evt)
@@ -61,6 +63,42 @@ TextField = Label.clone().newSlots({
 				});
 			}
 		}
+		
+		this.setText(this.text());
+	},
+	
+	sizingElement: function()
+	{
+		var e = document.createElement("div");
+		//e.style = window.getComputedStyle(this.element());
+		var myStyle = window.getComputedStyle(this.element());
+		for (var i = myStyle.length - 1; i > -1; i --)
+		{
+		    var name = myStyle[i];
+		    e.style.setProperty(name, myStyle.getPropertyValue(name));
+		}
+
+		e.style.position = "fixed";
+		e.style.width = "";
+		e.style.height = "";
+		e.style.top = screen.height + "px";
+		if (this.text() == "")
+		{
+			e.innerText = this.placeholderText();
+		}
+		else
+		{
+			e.innerText = this.text()
+		}
+		document.body.appendChild(e);
+		return e;
+	},
+	
+	sizeWidthToFit: function()
+	{
+		View.sizeWidthToFit.call(this);
+		this.setWidth(this.width() + 2);
+		return this;
 	},
 	
 	checkChanged: function()
@@ -74,40 +112,18 @@ TextField = Label.clone().newSlots({
 				{
 					self.sizeToFit();
 				}
-				console.log("changed");
 				self.delegatePerform("changed");
 			}
 		});
 	},
 	
-	/*
-	setCursorPosition: function(position)
-	{
-		var e = this.element();
-		if(e.setSelectionRange)
-		{
-			e.setSelectionRange(position, position);
-		}
-		else if (e.createTextRange)
-		{
-			var range = e.createTextRange();
-			range.collapse(true);
-			range.moveEnd('character', pos);
-			range.moveStart('character', pos);
-			range.select();
-		}
-	},
-	*/
-	
 	setText: function(text)
 	{
-		Label.setText.call(this, text);
-		
 		if (text.strip() == "")
 		{
 			this._originalColor = this.color();
 			this.setColor(this.placeholderTextColor());
-			this.element().innerText = this.placeholderText();
+			this.element().value = this.placeholderText();
 		}
 		else
 		{
@@ -116,6 +132,7 @@ TextField = Label.clone().newSlots({
 				this.setColor(this._originalColor);
 				delete this._originalColor;
 			}
+			this.element().value = text;
 		}
 		
 		this.checkChanged();
@@ -123,7 +140,7 @@ TextField = Label.clone().newSlots({
 	
 	text: function()
 	{
-		var text = this.element().innerText;
+		var text = this.element().value;
 		if (text == this.placeholderText())
 		{
 			return "";
@@ -134,20 +151,9 @@ TextField = Label.clone().newSlots({
 		}
 	},
 	
-	sizingElement: function()
-	{
-		var e = Label.sizingElement.call(this);
-		e.contentEditable = false;
-		return e;
-	},
-	
 	selectAll: function()
 	{
-		var range = document.createRange();
-		range.selectNodeContents(this.element());
-		var sel = window.getSelection();
-		sel.removeAllRanges();
-		sel.addRange(range);
+		this.element().select();
 	},
 	
 	focus: function()

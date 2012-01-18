@@ -27,6 +27,7 @@ Proto = new Object;
 Proto.setSlot = function(name, value)
 {
 	this[name] = value;
+
 	return this;
 };
 
@@ -325,6 +326,42 @@ Proto.setSlots(
 		
 		return o;
 	}
+	
+	/* figure this out later
+	superPerform: function(messageName)
+	{
+		if (!this._proto)
+		{
+			return undefined;
+		}
+		
+		var proto = this._proto;
+		
+		var myFn = this[messageName];
+		while(proto && (myFn == proto[messageName]))
+		{
+			proto = proto._proto;
+		}
+		
+		var fn = proto[messageName];
+		if (proto && fn && typeof(fn) == "function")
+		{
+			if (!window.logged)
+			{
+				logged = true;
+				console.log(this[messageName]);
+				console.log(proto[messageName]);
+			}
+			var args = Arguments_asArray(arguments);
+			args.removeFirst();
+			return proto[messageName].apply(this, args); 
+		}
+		else
+		{
+			return undefined;
+		}
+	}
+	*/
 });
 
 Proto.newSlot("type", "Proto");

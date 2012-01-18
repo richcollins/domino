@@ -90,7 +90,8 @@ TableView = View.clone().newSlots({
 	
 	rowHeight: function(row)
 	{
-		return this.rows()[row].map(function(view){ return (view || View.clone()).height() }).max();
+		var h = this.rows()[row].map(function(view){ return (view || View.clone()).height() }).max();
+		return h;
 	},
 	
 	alignRow: function(rowNum, alignment)
@@ -147,7 +148,7 @@ TableView = View.clone().newSlots({
 						v.setX(leftEdge + this.colWidth(c) - v.width());
 					}
 					
-					var topEdge = this.vMargin() + r*this.vMargin() + r.map(function(c){ return self.rowHeight(r) }).sum();
+					var topEdge = this.vMargin() + r*this.vMargin() + r.map(function(r){ return self.rowHeight(r) }).sum();
 					if (rowAlignment == TableView.RowAlignmentTop)
 					{
 						v.setY(topEdge);

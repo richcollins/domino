@@ -1,5 +1,5 @@
 SlotEditorView = TableView.clone().newSlots({
-	type: "PropertyEditorView",
+	type: "SlotEditorView",
 	object: null
 }).setSlots({
 	init: function()

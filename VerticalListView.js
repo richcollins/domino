@@ -3,7 +3,6 @@ VerticalListView = TitledView.clone().newSlots({
 	scrollView: null,
 	controlsView: null,
 	addButton: null,
-	removeButton: null,
 	defaultItemText: "New Item"
 }).setSlots({
 	init: function()
@@ -21,18 +20,8 @@ VerticalListView = TitledView.clone().newSlots({
 			addButton.setY(addButton.fontSize()/2);
 			addButton.setDelegate(this, "addButton").setDelegatePrefix("addButton");
 			this.setAddButton(addButton);
-			
-			var removeButton = Button.clone();
-			removeButton.setFontWeight("bold");
-			removeButton.setText("−");
-			removeButton.setColor(Color.DimGray);
-			removeButton.sizeToFit();
-			removeButton.setX(2*addButton.fontSize() + addButton.width()/2);
-			removeButton.setY(addButton.fontSize()/2);
-			removeButton.setDelegate(this).setDelegatePrefix("removeButton");
-			this.setRemoveButton(removeButton);
 		
-			var selfWidth = Math.max(addButton.width() + removeButton.width() + 3*addButton.fontSize(), this.titleBar().width());
+			var selfWidth = Math.max(addButton.width() + addButton.fontSize(), this.titleBar().width());
 		
 			var contentView = VerticalListContentView.clone();
 			contentView.setWidth(selfWidth);
@@ -74,7 +63,6 @@ VerticalListView = TitledView.clone().newSlots({
 			cv.addSubview(controlsView);
 			cv.addSubview(controlsDivider);
 			cv.addSubview(addButton);
-			cv.addSubview(removeButton);
 			
 			this.updateButtons();
 		}
@@ -110,26 +98,12 @@ VerticalListView = TitledView.clone().newSlots({
 		if (!this.shouldDockButton())
 		{
 			this.addButton().setHidden(true);
-			this.removeButton().setHidden(true);
 		}
 	},
 	
 	vlcv: function()
 	{
 		return this.scrollView().contentView();
-	},
-	
-	removeButtonClicked: function()
-	{
-		var items = this.vlcv().items();
-		var itemCount = items.length;
-		var selectedItem = this.vlcv().selectedItem();
-		this.vlcv().removeSelectedItem();
-		if (items.length != itemCount)
-		{
-			this.updateButtons();
-			this.delegatePerform("removedItem", selectedItem);
-		}
 	},
 	
 	textFieldShouldEndEditing: function(textField)
@@ -142,7 +116,7 @@ VerticalListView = TitledView.clone().newSlots({
 		var cv = this.scrollView().contentView();
 		cv.removeLastItem();
 		cv.addItemWithText(textField.text());
-		cv.buttonClicked(cv.items().last());
+		cv.itemViewClicked(cv.items().last());
 		this.scrollView().scrollToBottom();
 	},
 	
@@ -158,10 +132,6 @@ VerticalListView = TitledView.clone().newSlots({
 			this.addButton().setY(this.scrollView().height() + this.controlsView().height()/2 - this.addButton().height()/2 - 2);
 			this.addButton().setResizesTop(true);
 			this.addButton().setResizesBottom(false);
-			
-			this.removeButton().setY(this.scrollView().height() + this.controlsView().height()/2 - this.removeButton().height()/2 - 2);
-			this.removeButton().setResizesTop(true);
-			this.removeButton().setResizesBottom(false);
 		}
 		else
 		{
@@ -174,14 +144,9 @@ VerticalListView = TitledView.clone().newSlots({
 			this.addButton().setY(y);
 			this.addButton().setResizesTop(false);
 			this.addButton().setResizesBottom(true);
-			
-			this.removeButton().setY(y);
-			this.removeButton().setResizesTop(false);
-			this.removeButton().setResizesBottom(true);
 		}
 		
 		this.addButton().setHidden(false);
-		this.removeButton().setHidden(this.vlcv().items().length == 0);
 	},
 	
 	setHeight: function(h)
@@ -199,6 +164,12 @@ VerticalListView = TitledView.clone().newSlots({
 	{
 		this.updateButtons();
 		this.delegatePerform("vlvSelectedItem", item);
+	},
+	
+	vlcvRemovedItem: function(contentView, item)
+	{
+		this.updateButtons();
+		this.delegatePerform("removedItem", item);
 	},
 	
 	selectFirstItem: function()
@@ -224,7 +195,6 @@ VerticalListView = TitledView.clone().newSlots({
 	cancelAdd: function()
 	{
 		this.addButton().setHidden(false);
-		this.removeButton().setHidden(false);
 		this.scrollView().contentView().removeLastItem();
 	},
 	

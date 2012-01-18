@@ -25,6 +25,8 @@ StyleSlot = Proto.clone().newSlots({
 			{
 				this.element().style[styleName] = v;
 			}
+			
+			return this;
 		}
 		view["_" + name] = value;
 		

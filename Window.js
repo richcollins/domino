@@ -30,6 +30,17 @@ Window = View.clone().newSlots({
 		this.delegatePerform("inited");
 	},
 	
+	startResizeInterval: function() //window.onresize doesn't always work on mobile webkit.
+	{
+		var self = this;
+		this._resizeTimer = setInterval(function(){
+			if (self.width() != self.lastResizeWidth() || self.height() != self.lastResizeHeight())
+			{
+				self.autoResize();
+			}
+		}, 200);
+	},
+	
 	createElement: function()
 	{
 		this.setElement(document.body);
@@ -41,12 +52,14 @@ Window = View.clone().newSlots({
 	
 	width: function()
 	{
-		return this.element().clientWidth;
+		return window.innerWidth; //document.body isn't reliable on mobile
+		//return this.element().clientWidth;
 	},
 	
 	height: function()
 	{
-		return this.element().clientHeight;
+		return window.innerHeight; //document.body isn't reliable on mobile
+		//return this.element().clientHeight;
 	},
 	
 	autoResize: function()

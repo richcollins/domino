@@ -52,6 +52,7 @@ Proto = new Object;
 Proto.setSlot = function(name, value)
 {
 	this[name] = value;
+
 	return this;
 };
 
@@ -350,12 +351,47 @@ Proto.setSlots(
 		
 		return o;
 	}
+	
+	/* figure this out later
+	superPerform: function(messageName)
+	{
+		if (!this._proto)
+		{
+			return undefined;
+		}
+		
+		var proto = this._proto;
+		
+		var myFn = this[messageName];
+		while(proto && (myFn == proto[messageName]))
+		{
+			proto = proto._proto;
+		}
+		
+		var fn = proto[messageName];
+		if (proto && fn && typeof(fn) == "function")
+		{
+			if (!window.logged)
+			{
+				logged = true;
+				console.log(this[messageName]);
+				console.log(proto[messageName]);
+			}
+			var args = Arguments_asArray(arguments);
+			args.removeFirst();
+			return proto[messageName].apply(this, args); 
+		}
+		else
+		{
+			return undefined;
+		}
+	}
+	*/
 });
 
 Proto.newSlot("type", "Proto");
 Proto.newSlot("sender", null);
 Proto.removeSlot = Proto.removeSlots;
-
 Browser = Proto.clone().setSlots(
 {
 	userAgent: function()
@@ -772,6 +808,19 @@ Array.prototype.setSlotsIfAbsent(
 
 		return null;
 	},
+	
+	detectSlot: function(slotName, slotValue)
+	{
+		for(var i = 0; i < this.length; i++)
+		{
+			if (this[i][slotName] == slotValue)
+			{
+				return this[i];
+			}
+		}
+
+		return null;
+	},
 
 	detectIndex: function(callback)
 	{
@@ -1027,7 +1076,6 @@ Array.prototype.setSlotsIfAbsent(
 		if(i == -1) return null;
 		i = i + 1;
 		if(i > this.length - 1) return null;
-		//console.log("index = " + i + " " + this[i] )
 		if(this[i] != undefined) { return this[i]; }
 		return null;
 	},
@@ -1038,7 +1086,6 @@ Array.prototype.setSlotsIfAbsent(
 		if(i == -1) return null;
 		i = i - 1;
 		if(i < 0) return null;
-		//console.log("index = " + i + " " + this[i] )
 		if(this[i]) { return this[i]; }
 		return null;
 	}
@@ -1288,7 +1335,7 @@ String.prototype.setSlotsIfAbsent(
 	
 	base64UrlEncoded: function()
 	{
-		return this.base64Encoded().replace('+', '-').replace('/', '_').replace('=', ',');
+		return this.base64Encoded().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, ',');
 	},
 	
 	base64Decoded: function()
@@ -1298,7 +1345,7 @@ String.prototype.setSlotsIfAbsent(
 	
 	base64UrlDecoded: function()
 	{
-		return this.replace('-', '+').replace('_', '/').replace(',', '=').base64Decoded();
+		return this.replace(/-/g, '+').replace(/_/g, '/').replace(/,/g, '=').base64Decoded();
 	}
 });
 
@@ -1420,7 +1467,7 @@ Delegator = Proto.clone().newSlots({
 			var d = this.delegate();
 
 			messageName = this.delegateMessageName(messageName)
-			
+
 			if (d && d.canPerform(messageName))
 			{
 				return d.performWithArgList(messageName, args);
@@ -1456,6 +1503,8 @@ StyleSlot = Proto.clone().newSlots({
 			{
 				this.element().style[styleName] = v;
 			}
+			
+			return this;
 		}
 		view["_" + name] = value;
 		
@@ -1490,13 +1539,16 @@ View = Delegator.clone().newSlots({
 	subviews: [],
 	element: null,
 	elementName: "div",
+	eventListeners: null,
 	resizesLeft: false,
 	resizesRight: false,
 	resizesWidth: false,
 	resizesTop: false,
 	resizesBottom: false,
 	resizesHeight: false,
-	styleSlots: []
+	styleSlots: [],
+	autoResizes: true,
+	tracksMouse: false
 }).setSlot("newStyleSlots", function(slots){
 	for (var name in slots)
 	{
@@ -1520,8 +1572,8 @@ View = Delegator.clone().newSlots({
 }).newStyleSlots({
 	x: { name: "left", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	y: { name: "top", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-	width: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-	height: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	cssWidth: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	cssHeight: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	backgroundColor: { value: Color.Transparent, transformation: { name: "color" } },
 	visibility: { value: "visible" },
 	zIndex: { value: 0 }
@@ -1532,6 +1584,7 @@ View.setSlots({
 	{
 		Delegator.init.call(this);
 		
+		this.setEventListeners({});
 		this.setStyleSlots(this.styleSlots().copy());
 		this.createElement();
 		this.initElement();
@@ -1545,13 +1598,113 @@ View.setSlots({
 		e.style.overflow = "hidden";
 		this.setElement(e);
 	},
+	
+	elementId: function()
+	{
+		return this.type() + "." + this.uniqueId();
+	},
 
 	initElement: function()
 	{
 		var self = this;
+		this.element().id = this.elementId();
 		this.styleSlots().forEach(function(ss){
 			self.perform("set" + ss.name().asCapitalized(), self.perform(ss.name()));
 		});
+	},
+	
+	setTracksMouse: function(tracksMouse)
+	{
+		this._tracksMouse = tracksMouse;
+		var e = this.element();
+		
+		if (tracksMouse)
+		{
+			var self = this;
+			e.onmouseover = function(e)
+			{
+				if ((self.element() == e.fromElement) || self.detectAncestorView(function(v){ return v.element() == e.fromElement }))
+				{
+					return;
+				}
+				
+				self.delegatePerform("mouseEntered", Window.viewWithElement(e.fromElement));
+			}
+			e.onmouseout = function(e)
+			{
+				if ((self.element() == e.toElement) || self.detectAncestorView(function(v){ return v.element() == e.toElement }))
+				{
+					return;
+				}
+
+				self.delegatePerform("mouseExited", Window.viewWithElement(e.toElement));
+			}
+		}
+		else
+		{
+			delete e.onmouseover;
+			delete e.onmouseout;
+		}
+	},
+	
+	viewWithElement: function(e)
+	{
+		return this.detectAncestorView(function(v){ return v.element() == e });
+	},
+	
+	contains: function(sv)
+	{
+		return (sv == this) || this.detectAncestorView(function(v){ return v == sv });
+	},
+	
+	detectAncestorView: function(fn)
+	{
+		for (var i = 0; i < this.subviews().length; i ++)
+		{
+			var sv = this.subviews()[i];
+			if(fn(sv))
+			{
+				return sv;
+			}
+			else
+			{
+				var av = sv.detectAncestorView(fn);
+				if (av)
+				{
+					return av;
+				}
+			}
+		}
+		
+		return null;
+	},
+	
+	width: function()
+	{
+		return this.cssWidth();
+	},
+	
+	setWidth: function(w)
+	{
+		var lastWidth = this.width();
+		this.setCssWidth(w);
+		this.subviews().forEachPerform("autoResizeWidth", lastWidth);
+		
+		return this;
+	},
+	
+	height: function()
+	{
+		return this.cssHeight();
+	},
+	
+	setHeight: function(h)
+	{
+		var lastHeight = this.height();
+		this.setCssHeight(h);
+		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
+		
+		return this;
 	},
 	
 	setHidden: function(hidden)
@@ -1579,6 +1732,12 @@ View.setSlots({
 	
 	addEventListener: function(name, fn)
 	{
+		if (!this._eventListeners[name])
+		{
+			this._eventListeners[name] = [];
+		}
+		this._eventListeners[name].append(fn);
+		
 		var e = this.element();
 		if (e.addEventListener)
 		{
@@ -1587,6 +1746,31 @@ View.setSlots({
 		else
 		{
 			e.attachEvent(name, fn);
+		}
+	},
+	
+	removeEventListener: function(name, fn)
+	{
+		var e = this.element();
+		if (e.removeEventListener)
+		{
+			e.removeEventListener(name, fn);
+		}
+		else
+		{
+			e.detachEvent(name, fn);
+		}
+	},
+	
+	removeEventListeners: function(name)
+	{
+		var listeners = this._eventListeners[name];
+		if (listeners)
+		{
+			var self = this;
+			listeners.forEach(function(listener){
+				self.removeEventListener(name, listener);
+			});
 		}
 	},
 	
@@ -1600,14 +1784,6 @@ View.setSlots({
 		{
 			evt.returnValue = false;
 		}
-	},
-	
-	removeAllSubviews: function()
-	{
-		var self = this;
-		this.subviews().copy().forEach(function(sv){
-			self.removeSubview(sv);
-		});
 	},
 
 	removeSubview: function(subview)
@@ -1624,6 +1800,23 @@ View.setSlots({
 		subview.setSuperview(null);
 		this.element().removeChild(subview.element());
 	},
+	
+	removeAllSubviews: function()
+	{
+		var self = this;
+		this.subviews().copy().forEach(function(sv){
+			self.removeSubview(sv);
+		});
+	},
+	
+	removeFromSuperview: function()
+	{
+		if (this.superview())
+		{
+			this.superview().removeSubview(this);
+		}
+		return this;
+	},
 
 	addSubview: function(subview)
 	{
@@ -1636,7 +1829,7 @@ View.setSlots({
 		this.subviews().append(subview);
 		this.element().appendChild(subview.element());
 		
-		//subview.conditionallyPerform("didAddToSuperview");
+		subview.conditionallyPerform("superviewChanged");
 	},
 	
 	addSubviews: function()
@@ -1659,11 +1852,19 @@ View.setSlots({
 	
 	moveRightOf: function(view, margin)
 	{
+		margin = margin || 0;
 		this.setX(view.rightEdge() + margin);
+	},
+	
+	moveAbove: function(view, margin)
+	{
+		margin = margin || 0;
+		this.setY(view.y() - this.height() - margin);
 	},
 	
 	moveBelow: function(view, margin)
 	{
+		margin = margin || 0;
 		this.setY(view.bottomEdge() + margin);
 	},
 	
@@ -1685,6 +1886,22 @@ View.setSlots({
 	alignRightTo: function(view)
 	{
 		this.setX(view.rightEdge() - this.width() - 1);
+	},
+	
+	centerXOver: function(view)
+	{
+		this.setX(view.x() + (view.width() - this.width())/2);
+	},
+	
+	centerYOver: function(view)
+	{
+		this.setY(view.y() + (view.height() - this.height())/2);
+	},
+	
+	centerOver: function(view)
+	{
+		this.centerXOver(view);
+		this.centerYOver(view);
 	},
 	
 	center: function()
@@ -1712,17 +1929,24 @@ View.setSlots({
 		}
 	},
 	
-	_setWidth: View.setWidth,
-	
-	setWidth: function(newWidth)
+	moveToBottom: function(margin)
 	{
-		var lastWidth = this.width();
-		this._setWidth(newWidth);
-		this.subviews().forEachPerform("autoResizeWidth", lastWidth);
+		margin = margin || 0;
+		
+		this.setY(this.superview().height() - this.height() - margin);
+	},
+	
+	moveDown: function(y)
+	{
+		return this.setY(this.y() + y);
 	},
 	
 	autoResizeWidth: function(lastSuperWidth)
 	{
+		if (!this.autoResizes())
+		{
+			return;
+		}
 		var currentSuperWidth = this.superview().width();
 		var myLastWidth = this.width();
 		
@@ -1760,17 +1984,12 @@ View.setSlots({
 		}
 	},
 	
-	_setHeight: View.setHeight,
-	
-	setHeight: function(newHeight)
-	{
-		var lastHeight = this.height();
-		this._setHeight(newHeight);
-		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
-	},
-	
 	autoResizeHeight: function(lastSuperHeight)
 	{
+		if (!this.autoResizes())
+		{
+			return;
+		}
 		var currentSuperHeight = this.superview().height();
 		var myLastHeight = this.height();
 		
@@ -1872,7 +2091,7 @@ View.setSlots({
 	{
 		var e = this.sizingElement();
 		var s = e.style;
-		this.setWidth(e.clientWidth);
+		this.setWidth(e.offsetWidth);
 		document.body.removeChild(e);
 	},
 	
@@ -1881,7 +2100,7 @@ View.setSlots({
 		var e = this.sizingElement();
 		var s = e.style;
 		s.width = this.width() + "px";
-		this.setHeight(e.clientHeight);
+		this.setHeight(e.offsetHeight);
 		document.body.removeChild(e);
 	},
 	
@@ -1894,6 +2113,26 @@ View.setSlots({
 	moveToBack: function()
 	{
 		this.setZIndex(this.superview().subviews().mapPerform("zIndex").min() - 1);
+	},
+	
+	//animations
+	fadeOut: function(duration)
+	{
+		duration = duration || 1000;
+		
+		var start = new Date();
+		var self = this;
+		var initialOpacity  = this.element().style.opacity;
+		var interval = setInterval(function(){
+			var elapsed = new Date().getTime() - start.getTime();
+			self.element().style.opacity = 1 - (elapsed/duration);
+			if (elapsed >= duration)
+			{
+				clearInterval(interval);
+				self.hide();
+				self.element().style.opacity = initialOpacity;
+			}
+		}, 1000/60);
 	}
 });
 
@@ -1929,6 +2168,17 @@ Window = View.clone().newSlots({
 		this.delegatePerform("inited");
 	},
 	
+	startResizeInterval: function() //window.onresize doesn't always work on mobile webkit.
+	{
+		var self = this;
+		this._resizeTimer = setInterval(function(){
+			if (self.width() != self.lastResizeWidth() || self.height() != self.lastResizeHeight())
+			{
+				self.autoResize();
+			}
+		}, 200);
+	},
+	
 	createElement: function()
 	{
 		this.setElement(document.body);
@@ -1940,12 +2190,14 @@ Window = View.clone().newSlots({
 	
 	width: function()
 	{
-		return this.element().clientWidth;
+		return window.innerWidth; //document.body isn't reliable on mobile
+		//return this.element().clientWidth;
 	},
 	
 	height: function()
 	{
-		return this.element().clientHeight;
+		return window.innerHeight; //document.body isn't reliable on mobile
+		//return this.element().clientHeight;
 	},
 	
 	autoResize: function()
@@ -1983,8 +2235,9 @@ Label = View.clone().newSlots({
 
 TextField = Label.clone().newSlots({
 	type: "TextField",
+	elementName: "input",
 	placeholderText: "Enter Text",
-	placeholderTextColor: Color.LightGray,
+	placeholderTextColor: Color.Gray,
 	growsToFit: true
 }).setSlots({
 	initElement: function()
@@ -1992,8 +2245,9 @@ TextField = Label.clone().newSlots({
 		View.initElement.call(this);
 		
 		var e = this.element();
-		e.contentEditable = true;
-		e.style.outline = "none";
+		
+		e.style.margin = "";
+		e.style.padding = "";
 		
 		var self = this;
 		e.onkeydown = function(evt)
@@ -2044,6 +2298,42 @@ TextField = Label.clone().newSlots({
 				});
 			}
 		}
+		
+		this.setText(this.text());
+	},
+	
+	sizingElement: function()
+	{
+		var e = document.createElement("div");
+		//e.style = window.getComputedStyle(this.element());
+		var myStyle = window.getComputedStyle(this.element());
+		for (var i = myStyle.length - 1; i > -1; i --)
+		{
+		    var name = myStyle[i];
+		    e.style.setProperty(name, myStyle.getPropertyValue(name));
+		}
+
+		e.style.position = "fixed";
+		e.style.width = "";
+		e.style.height = "";
+		e.style.top = screen.height + "px";
+		if (this.text() == "")
+		{
+			e.innerText = this.placeholderText();
+		}
+		else
+		{
+			e.innerText = this.text()
+		}
+		document.body.appendChild(e);
+		return e;
+	},
+	
+	sizeWidthToFit: function()
+	{
+		View.sizeWidthToFit.call(this);
+		this.setWidth(this.width() + 2);
+		return this;
 	},
 	
 	checkChanged: function()
@@ -2057,40 +2347,18 @@ TextField = Label.clone().newSlots({
 				{
 					self.sizeToFit();
 				}
-				console.log("changed");
 				self.delegatePerform("changed");
 			}
 		});
 	},
 	
-	/*
-	setCursorPosition: function(position)
-	{
-		var e = this.element();
-		if(e.setSelectionRange)
-		{
-			e.setSelectionRange(position, position);
-		}
-		else if (e.createTextRange)
-		{
-			var range = e.createTextRange();
-			range.collapse(true);
-			range.moveEnd('character', pos);
-			range.moveStart('character', pos);
-			range.select();
-		}
-	},
-	*/
-	
 	setText: function(text)
 	{
-		Label.setText.call(this, text);
-		
 		if (text.strip() == "")
 		{
 			this._originalColor = this.color();
 			this.setColor(this.placeholderTextColor());
-			this.element().innerText = this.placeholderText();
+			this.element().value = this.placeholderText();
 		}
 		else
 		{
@@ -2099,6 +2367,7 @@ TextField = Label.clone().newSlots({
 				this.setColor(this._originalColor);
 				delete this._originalColor;
 			}
+			this.element().value = text;
 		}
 		
 		this.checkChanged();
@@ -2106,7 +2375,7 @@ TextField = Label.clone().newSlots({
 	
 	text: function()
 	{
-		var text = this.element().innerText;
+		var text = this.element().value;
 		if (text == this.placeholderText())
 		{
 			return "";
@@ -2117,20 +2386,9 @@ TextField = Label.clone().newSlots({
 		}
 	},
 	
-	sizingElement: function()
-	{
-		var e = Label.sizingElement.call(this);
-		e.contentEditable = false;
-		return e;
-	},
-	
 	selectAll: function()
 	{
-		var range = document.createRange();
-		range.selectNodeContents(this.element());
-		var sel = window.getSelection();
-		sel.removeAllRanges();
-		sel.addRange(range);
+		this.element().select();
 	},
 	
 	focus: function()
@@ -2483,7 +2741,8 @@ TableView = View.clone().newSlots({
 	
 	rowHeight: function(row)
 	{
-		return this.rows()[row].map(function(view){ return (view || View.clone()).height() }).max();
+		var h = this.rows()[row].map(function(view){ return (view || View.clone()).height() }).max();
+		return h;
 	},
 	
 	alignRow: function(rowNum, alignment)
@@ -2540,7 +2799,7 @@ TableView = View.clone().newSlots({
 						v.setX(leftEdge + this.colWidth(c) - v.width());
 					}
 					
-					var topEdge = this.vMargin() + r*this.vMargin() + r.map(function(c){ return self.rowHeight(r) }).sum();
+					var topEdge = this.vMargin() + r*this.vMargin() + r.map(function(r){ return self.rowHeight(r) }).sum();
 					if (rowAlignment == TableView.RowAlignmentTop)
 					{
 						v.setY(topEdge);
@@ -2569,13 +2828,30 @@ VerticalListContentView = View.clone().newSlots({
 	selectedItemIndex: null,
 	itemHMargin: 15,
 	itemVMargin: 15,
-	confirmsRemove: true
+	confirmsRemove: true,
+	closeButton: null,
 }).setSlots({
 	init: function()
 	{
 		View.init.call(this);
 		
 		this.setItems(this.items().copy());
+		
+		if(Window.inited())
+		{
+			var closeButton = ImageButton.clone().newSlot("itemView", null);
+			this.setCloseButton(closeButton);
+			closeButton.setDelegate(this);
+			closeButton.setDelegatePrefix("closeButton");
+			closeButton.setImageUrl("http://f.cl.ly/items/3P3Y2Z2B31222w0l1K0E/gray-close.png");
+			closeButton.setWidth(12);
+			closeButton.setHeight(12);
+			closeButton.setX(this.width() - closeButton.width() - closeButton.width()/2);
+			closeButton.setResizesLeft(true);
+			closeButton.setZIndex(1);
+			closeButton.hide();
+			this.addSubview(closeButton);
+		}
 	},
 	
 	addItemWithText: function(text)
@@ -2583,42 +2859,55 @@ VerticalListContentView = View.clone().newSlots({
 		var hMargin = VerticalListContentView.itemHMargin();
 		var vMargin = VerticalListContentView.itemVMargin();
 		
-		var l = Label.clone();
-		l.setColor(Color.Gray);
-		l.setText(text);
-		l.setWidth(this.width() - 2*hMargin);
-		l.sizeHeightToFit();
-		l.setX(hMargin);
 		
-		var b = Button.clone();
-		b.newSlot("label", l);
-		b.setDelegate(this);
-		b.setWidth(this.width());
-		b.setHeight(l.height() + hMargin);
-		b.addSubview(l);
+		var itemView = Button.clone().newSlots({
+			type: "ItemView",
+			label: null
+		}).clone();
+		itemView.setTracksMouse(true);
+		itemView.setDelegate(this);
+		itemView.setWidth(this.width());
+		itemView.setResizesWidth(true);
 		
-		l.centerVertically();
+		var label = Label.clone();
+		itemView.setLabel(label);
+		label.setColor(Color.Gray);
+		label.setText(text);
+		label.setWidth(this.width() - hMargin - 2*this.closeButton().width());
+		label.sizeHeightToFit();
+		label.setX(hMargin);
+		itemView.setHeight(label.height() + hMargin);
+		itemView.addSubview(label);
 		
-		this.addItem(b);
+		itemView.addSubview(label);
+		label.centerVertically();
+		
+		this.addItem(itemView);
 	},
 	
-	addItem: function(itemView)
+	itemViewMouseEntered: function(itemView, previousView)
 	{
-		itemView.setY(this.items().length * itemView.height());
-		this.setHeight(itemView.bottomEdge());
-		this.addSubview(itemView);
-		this.items().append(itemView);
+		if (!this.closeButton().contains(previousView))
+		{
+			var closeButton = this.closeButton();
+			closeButton.centerYOver(itemView);
+			closeButton.moveDown(1);
+			closeButton.show();
+			closeButton.setItemView(itemView);
+		}
 	},
 	
-	removeLastItem: function()
+	itemViewMouseExited: function(itemView, nextView)
 	{
-		var item = this.items().pop();
-		
-		this.removeSubview(item);
-		this.setHeight(this.height() - item.height());
+		if (!this.closeButton().contains(nextView))
+		{
+			var closeButton = this.closeButton();
+			closeButton.hide();
+			closeButton.setItemView(null);
+		}
 	},
 	
-	buttonClicked: function(button)
+	itemViewClicked: function(button)
 	{
 		if (this.selectedItemIndex() !== null)
 		{
@@ -2640,9 +2929,27 @@ VerticalListContentView = View.clone().newSlots({
 		this.delegatePerform("selectedItem", button);
 	},
 	
+	addItem: function(itemView)
+	{
+		var hMargin = VerticalListContentView.itemHMargin();
+		
+		itemView.setY(this.items().length * itemView.height());
+		this.setHeight(itemView.bottomEdge());
+		this.addSubview(itemView);
+		this.items().append(itemView);
+	},
+	
+	removeLastItem: function()
+	{
+		var item = this.items().pop();
+		
+		this.removeSubview(item);
+		this.setHeight(this.height() - item.height());
+	},
+	
 	selectItem: function(item)
 	{
-		this.buttonClicked(item);
+		this.itemViewClicked(item);
 	},
 	
 	removeItem: function(item)
@@ -2655,18 +2962,35 @@ VerticalListContentView = View.clone().newSlots({
 			}
 		}
 		
-		var i = this.items().indexOf(item);
+		var selectedItem = this.selectedItem();
+		
+		var itemIndex = this.items().indexOf(item);
 		this.items().remove(item);
-		this.items().slice(i).forEach(function(itemToMove, j){
+		this.items().slice(itemIndex).forEach(function(itemToMove){
 			itemToMove.setY(itemToMove.y() - item.height());
 		});
 		this.removeSubview(item);
 		this.setHeight(this.height() - item.height());
-		var itemToSelect = this.items()[i] || this.items().last();
-		if (itemToSelect)
+		if (selectedItem == item)
 		{
-			this.selectItem(itemToSelect);
+			var itemToSelect = this.items()[itemIndex] || this.items().last();
+			if (itemToSelect)
+			{
+				this.selectItem(itemToSelect);
+			}
 		}
+		var newItemAtIndex = this.items()[itemIndex];
+		if (newItemAtIndex)
+		{
+			this.itemViewMouseEntered(newItemAtIndex, null);
+		}
+		
+		this.delegatePerform("removedItem", item);
+	},
+	
+	closeButtonClicked: function(closeButton)
+	{
+		this.removeItem(closeButton.itemView());
 	},
 	
 	selectedItem: function()
@@ -2685,7 +3009,6 @@ VerticalListView = TitledView.clone().newSlots({
 	scrollView: null,
 	controlsView: null,
 	addButton: null,
-	removeButton: null,
 	defaultItemText: "New Item"
 }).setSlots({
 	init: function()
@@ -2703,18 +3026,8 @@ VerticalListView = TitledView.clone().newSlots({
 			addButton.setY(addButton.fontSize()/2);
 			addButton.setDelegate(this, "addButton").setDelegatePrefix("addButton");
 			this.setAddButton(addButton);
-			
-			var removeButton = Button.clone();
-			removeButton.setFontWeight("bold");
-			removeButton.setText("−");
-			removeButton.setColor(Color.DimGray);
-			removeButton.sizeToFit();
-			removeButton.setX(2*addButton.fontSize() + addButton.width()/2);
-			removeButton.setY(addButton.fontSize()/2);
-			removeButton.setDelegate(this).setDelegatePrefix("removeButton");
-			this.setRemoveButton(removeButton);
 		
-			var selfWidth = Math.max(addButton.width() + removeButton.width() + 3*addButton.fontSize(), this.titleBar().width());
+			var selfWidth = Math.max(addButton.width() + addButton.fontSize(), this.titleBar().width());
 		
 			var contentView = VerticalListContentView.clone();
 			contentView.setWidth(selfWidth);
@@ -2756,7 +3069,6 @@ VerticalListView = TitledView.clone().newSlots({
 			cv.addSubview(controlsView);
 			cv.addSubview(controlsDivider);
 			cv.addSubview(addButton);
-			cv.addSubview(removeButton);
 			
 			this.updateButtons();
 		}
@@ -2792,26 +3104,12 @@ VerticalListView = TitledView.clone().newSlots({
 		if (!this.shouldDockButton())
 		{
 			this.addButton().setHidden(true);
-			this.removeButton().setHidden(true);
 		}
 	},
 	
 	vlcv: function()
 	{
 		return this.scrollView().contentView();
-	},
-	
-	removeButtonClicked: function()
-	{
-		var items = this.vlcv().items();
-		var itemCount = items.length;
-		var selectedItem = this.vlcv().selectedItem();
-		this.vlcv().removeSelectedItem();
-		if (items.length != itemCount)
-		{
-			this.updateButtons();
-			this.delegatePerform("removedItem", selectedItem);
-		}
 	},
 	
 	textFieldShouldEndEditing: function(textField)
@@ -2824,7 +3122,7 @@ VerticalListView = TitledView.clone().newSlots({
 		var cv = this.scrollView().contentView();
 		cv.removeLastItem();
 		cv.addItemWithText(textField.text());
-		cv.buttonClicked(cv.items().last());
+		cv.itemViewClicked(cv.items().last());
 		this.scrollView().scrollToBottom();
 	},
 	
@@ -2840,10 +3138,6 @@ VerticalListView = TitledView.clone().newSlots({
 			this.addButton().setY(this.scrollView().height() + this.controlsView().height()/2 - this.addButton().height()/2 - 2);
 			this.addButton().setResizesTop(true);
 			this.addButton().setResizesBottom(false);
-			
-			this.removeButton().setY(this.scrollView().height() + this.controlsView().height()/2 - this.removeButton().height()/2 - 2);
-			this.removeButton().setResizesTop(true);
-			this.removeButton().setResizesBottom(false);
 		}
 		else
 		{
@@ -2856,14 +3150,9 @@ VerticalListView = TitledView.clone().newSlots({
 			this.addButton().setY(y);
 			this.addButton().setResizesTop(false);
 			this.addButton().setResizesBottom(true);
-			
-			this.removeButton().setY(y);
-			this.removeButton().setResizesTop(false);
-			this.removeButton().setResizesBottom(true);
 		}
 		
 		this.addButton().setHidden(false);
-		this.removeButton().setHidden(this.vlcv().items().length == 0);
 	},
 	
 	setHeight: function(h)
@@ -2881,6 +3170,12 @@ VerticalListView = TitledView.clone().newSlots({
 	{
 		this.updateButtons();
 		this.delegatePerform("vlvSelectedItem", item);
+	},
+	
+	vlcvRemovedItem: function(contentView, item)
+	{
+		this.updateButtons();
+		this.delegatePerform("removedItem", item);
 	},
 	
 	selectFirstItem: function()
@@ -2906,7 +3201,6 @@ VerticalListView = TitledView.clone().newSlots({
 	cancelAdd: function()
 	{
 		this.addButton().setHidden(false);
-		this.removeButton().setHidden(false);
 		this.scrollView().contentView().removeLastItem();
 	},
 	
@@ -2985,6 +3279,13 @@ BorderedButton = Button.clone().newSlots({
 		return this;
 	},
 	
+	sizeWidthToFit: function()
+	{
+		Button.sizeWidthToFit.call(this);
+		w = this.width() + Math.max(this.leftBorderWidth() + this.rightBorderWidth(), 2*this.fontSize());
+		this.setWidth(w);
+	},
+	
 	updateStyle: function()
 	{
 		var style = this.element().style;
@@ -3031,6 +3332,7 @@ VideoView = View.clone().newSlots({
 	duration: null,
 	elementName: "video",
 	inline: false,
+	autoplay: false,
 	canPlay: false
 }).setSlots({
 	/*
@@ -3106,6 +3408,19 @@ VideoView = View.clone().newSlots({
 		}
 	},
 	
+	setAutoplay: function(autoplay)
+	{
+		this._autoplay = autoplay;
+		if (autoplay)
+		{
+			this.element().setAttribute("autoplay", "");
+		}
+		else
+		{
+			this.element().removeAttribute("autoplay");
+		}
+	},
+	
 	load: function()
 	{
 		this.setInline(this.inline());
@@ -3128,7 +3443,7 @@ VideoView = View.clone().newSlots({
 		this.element().muted = true;
 	}
 });
-Editable = Proto.clone().newSlots({
+Editable = Delegator.clone().newSlots({
 	type: "Editable",
 	watchesSlots: true,
 	editableSlotDescriptions: {},
@@ -3136,6 +3451,8 @@ Editable = Proto.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
+		Delegator.init.call(this);
+		
 		this.setEditableSlotDescriptions(Object_clone(this.editableSlotDescriptions()));
 	},
 	
@@ -3173,6 +3490,10 @@ Editable = Proto.clone().newSlots({
 				editableSlot.control().performSets(control);
 				editableSlot.setName(name);
 				editableSlot.setObject(this);
+				if (description.label)
+				{
+					editableSlot.label().performSets(description.label).sizeToFit();
+				}
 				this.editableSlots().append(editableSlot);
 			}
 		}
@@ -3212,6 +3533,7 @@ EditableSlot = Proto.clone().newSlots({
 	object: null,
 	name: null,
 	label: null,
+	labelText: null,
 	control: null,
 	slotEditorView: null,
 	controlProto: null
@@ -3296,7 +3618,7 @@ EditableTextFieldSlot = EditableSlot.clone().newSlots({
 });
 
 SlotEditorView = TableView.clone().newSlots({
-	type: "PropertyEditorView",
+	type: "SlotEditorView",
 	object: null
 }).setSlots({
 	init: function()
@@ -3380,16 +3702,19 @@ HttpRequest = Delegator.clone().newSlots({
 	}
 });
 
-App = Proto.clone().newSlots({
+App = Delegator.clone().newSlots({
 	type: "App"
 }).setSlots({
 	init: function()
 	{
+		Delegator.init.call(this);
+		
 		Window.setDelegate(this);
 	},
 	
 	windowInited: function()
 	{
 		this.start();
+		this.delegatePerform("started");
 	}
 });

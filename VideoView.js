@@ -6,6 +6,7 @@ VideoView = View.clone().newSlots({
 	duration: null,
 	elementName: "video",
 	inline: false,
+	autoplay: false,
 	canPlay: false
 }).setSlots({
 	/*
@@ -78,6 +79,19 @@ VideoView = View.clone().newSlots({
 		else
 		{
 			this.element().removeAttribute("webkit-playsinline")
+		}
+	},
+	
+	setAutoplay: function(autoplay)
+	{
+		this._autoplay = autoplay;
+		if (autoplay)
+		{
+			this.element().setAttribute("autoplay", "");
+		}
+		else
+		{
+			this.element().removeAttribute("autoplay");
 		}
 	},
 	

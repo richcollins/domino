@@ -3,6 +3,7 @@ EditableSlot = Proto.clone().newSlots({
 	object: null,
 	name: null,
 	label: null,
+	labelText: null,
 	control: null,
 	slotEditorView: null,
 	controlProto: null

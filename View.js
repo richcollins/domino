@@ -4,13 +4,16 @@ View = Delegator.clone().newSlots({
 	subviews: [],
 	element: null,
 	elementName: "div",
+	eventListeners: null,
 	resizesLeft: false,
 	resizesRight: false,
 	resizesWidth: false,
 	resizesTop: false,
 	resizesBottom: false,
 	resizesHeight: false,
-	styleSlots: []
+	styleSlots: [],
+	autoResizes: true,
+	tracksMouse: false
 }).setSlot("newStyleSlots", function(slots){
 	for (var name in slots)
 	{
@@ -34,8 +37,8 @@ View = Delegator.clone().newSlots({
 }).newStyleSlots({
 	x: { name: "left", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	y: { name: "top", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-	width: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-	height: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	cssWidth: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	cssHeight: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	backgroundColor: { value: Color.Transparent, transformation: { name: "color" } },
 	visibility: { value: "visible" },
 	zIndex: { value: 0 }
@@ -46,6 +49,7 @@ View.setSlots({
 	{
 		Delegator.init.call(this);
 		
+		this.setEventListeners({});
 		this.setStyleSlots(this.styleSlots().copy());
 		this.createElement();
 		this.initElement();
@@ -59,13 +63,113 @@ View.setSlots({
 		e.style.overflow = "hidden";
 		this.setElement(e);
 	},
+	
+	elementId: function()
+	{
+		return this.type() + "." + this.uniqueId();
+	},
 
 	initElement: function()
 	{
 		var self = this;
+		this.element().id = this.elementId();
 		this.styleSlots().forEach(function(ss){
 			self.perform("set" + ss.name().asCapitalized(), self.perform(ss.name()));
 		});
+	},
+	
+	setTracksMouse: function(tracksMouse)
+	{
+		this._tracksMouse = tracksMouse;
+		var e = this.element();
+		
+		if (tracksMouse)
+		{
+			var self = this;
+			e.onmouseover = function(e)
+			{
+				if ((self.element() == e.fromElement) || self.detectAncestorView(function(v){ return v.element() == e.fromElement }))
+				{
+					return;
+				}
+				
+				self.delegatePerform("mouseEntered", Window.viewWithElement(e.fromElement));
+			}
+			e.onmouseout = function(e)
+			{
+				if ((self.element() == e.toElement) || self.detectAncestorView(function(v){ return v.element() == e.toElement }))
+				{
+					return;
+				}
+
+				self.delegatePerform("mouseExited", Window.viewWithElement(e.toElement));
+			}
+		}
+		else
+		{
+			delete e.onmouseover;
+			delete e.onmouseout;
+		}
+	},
+	
+	viewWithElement: function(e)
+	{
+		return this.detectAncestorView(function(v){ return v.element() == e });
+	},
+	
+	contains: function(sv)
+	{
+		return (sv == this) || this.detectAncestorView(function(v){ return v == sv });
+	},
+	
+	detectAncestorView: function(fn)
+	{
+		for (var i = 0; i < this.subviews().length; i ++)
+		{
+			var sv = this.subviews()[i];
+			if(fn(sv))
+			{
+				return sv;
+			}
+			else
+			{
+				var av = sv.detectAncestorView(fn);
+				if (av)
+				{
+					return av;
+				}
+			}
+		}
+		
+		return null;
+	},
+	
+	width: function()
+	{
+		return this.cssWidth();
+	},
+	
+	setWidth: function(w)
+	{
+		var lastWidth = this.width();
+		this.setCssWidth(w);
+		this.subviews().forEachPerform("autoResizeWidth", lastWidth);
+		
+		return this;
+	},
+	
+	height: function()
+	{
+		return this.cssHeight();
+	},
+	
+	setHeight: function(h)
+	{
+		var lastHeight = this.height();
+		this.setCssHeight(h);
+		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
+		
+		return this;
 	},
 	
 	setHidden: function(hidden)
@@ -93,6 +197,12 @@ View.setSlots({
 	
 	addEventListener: function(name, fn)
 	{
+		if (!this._eventListeners[name])
+		{
+			this._eventListeners[name] = [];
+		}
+		this._eventListeners[name].append(fn);
+		
 		var e = this.element();
 		if (e.addEventListener)
 		{
@@ -101,6 +211,31 @@ View.setSlots({
 		else
 		{
 			e.attachEvent(name, fn);
+		}
+	},
+	
+	removeEventListener: function(name, fn)
+	{
+		var e = this.element();
+		if (e.removeEventListener)
+		{
+			e.removeEventListener(name, fn);
+		}
+		else
+		{
+			e.detachEvent(name, fn);
+		}
+	},
+	
+	removeEventListeners: function(name)
+	{
+		var listeners = this._eventListeners[name];
+		if (listeners)
+		{
+			var self = this;
+			listeners.forEach(function(listener){
+				self.removeEventListener(name, listener);
+			});
 		}
 	},
 	
@@ -114,14 +249,6 @@ View.setSlots({
 		{
 			evt.returnValue = false;
 		}
-	},
-	
-	removeAllSubviews: function()
-	{
-		var self = this;
-		this.subviews().copy().forEach(function(sv){
-			self.removeSubview(sv);
-		});
 	},
 
 	removeSubview: function(subview)
@@ -138,6 +265,23 @@ View.setSlots({
 		subview.setSuperview(null);
 		this.element().removeChild(subview.element());
 	},
+	
+	removeAllSubviews: function()
+	{
+		var self = this;
+		this.subviews().copy().forEach(function(sv){
+			self.removeSubview(sv);
+		});
+	},
+	
+	removeFromSuperview: function()
+	{
+		if (this.superview())
+		{
+			this.superview().removeSubview(this);
+		}
+		return this;
+	},
 
 	addSubview: function(subview)
 	{
@@ -150,7 +294,7 @@ View.setSlots({
 		this.subviews().append(subview);
 		this.element().appendChild(subview.element());
 		
-		//subview.conditionallyPerform("didAddToSuperview");
+		subview.conditionallyPerform("superviewChanged");
 	},
 	
 	addSubviews: function()
@@ -173,11 +317,19 @@ View.setSlots({
 	
 	moveRightOf: function(view, margin)
 	{
+		margin = margin || 0;
 		this.setX(view.rightEdge() + margin);
+	},
+	
+	moveAbove: function(view, margin)
+	{
+		margin = margin || 0;
+		this.setY(view.y() - this.height() - margin);
 	},
 	
 	moveBelow: function(view, margin)
 	{
+		margin = margin || 0;
 		this.setY(view.bottomEdge() + margin);
 	},
 	
@@ -199,6 +351,22 @@ View.setSlots({
 	alignRightTo: function(view)
 	{
 		this.setX(view.rightEdge() - this.width() - 1);
+	},
+	
+	centerXOver: function(view)
+	{
+		this.setX(view.x() + (view.width() - this.width())/2);
+	},
+	
+	centerYOver: function(view)
+	{
+		this.setY(view.y() + (view.height() - this.height())/2);
+	},
+	
+	centerOver: function(view)
+	{
+		this.centerXOver(view);
+		this.centerYOver(view);
 	},
 	
 	center: function()
@@ -226,17 +394,24 @@ View.setSlots({
 		}
 	},
 	
-	_setWidth: View.setWidth,
-	
-	setWidth: function(newWidth)
+	moveToBottom: function(margin)
 	{
-		var lastWidth = this.width();
-		this._setWidth(newWidth);
-		this.subviews().forEachPerform("autoResizeWidth", lastWidth);
+		margin = margin || 0;
+		
+		this.setY(this.superview().height() - this.height() - margin);
+	},
+	
+	moveDown: function(y)
+	{
+		return this.setY(this.y() + y);
 	},
 	
 	autoResizeWidth: function(lastSuperWidth)
 	{
+		if (!this.autoResizes())
+		{
+			return;
+		}
 		var currentSuperWidth = this.superview().width();
 		var myLastWidth = this.width();
 		
@@ -274,17 +449,12 @@ View.setSlots({
 		}
 	},
 	
-	_setHeight: View.setHeight,
-	
-	setHeight: function(newHeight)
-	{
-		var lastHeight = this.height();
-		this._setHeight(newHeight);
-		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
-	},
-	
 	autoResizeHeight: function(lastSuperHeight)
 	{
+		if (!this.autoResizes())
+		{
+			return;
+		}
 		var currentSuperHeight = this.superview().height();
 		var myLastHeight = this.height();
 		
@@ -386,7 +556,7 @@ View.setSlots({
 	{
 		var e = this.sizingElement();
 		var s = e.style;
-		this.setWidth(e.clientWidth);
+		this.setWidth(e.offsetWidth);
 		document.body.removeChild(e);
 	},
 	
@@ -395,7 +565,7 @@ View.setSlots({
 		var e = this.sizingElement();
 		var s = e.style;
 		s.width = this.width() + "px";
-		this.setHeight(e.clientHeight);
+		this.setHeight(e.offsetHeight);
 		document.body.removeChild(e);
 	},
 	
@@ -408,5 +578,25 @@ View.setSlots({
 	moveToBack: function()
 	{
 		this.setZIndex(this.superview().subviews().mapPerform("zIndex").min() - 1);
+	},
+	
+	//animations
+	fadeOut: function(duration)
+	{
+		duration = duration || 1000;
+		
+		var start = new Date();
+		var self = this;
+		var initialOpacity  = this.element().style.opacity;
+		var interval = setInterval(function(){
+			var elapsed = new Date().getTime() - start.getTime();
+			self.element().style.opacity = 1 - (elapsed/duration);
+			if (elapsed >= duration)
+			{
+				clearInterval(interval);
+				self.hide();
+				self.element().style.opacity = initialOpacity;
+			}
+		}, 1000/60);
 	}
 });

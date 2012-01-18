@@ -1,4 +1,4 @@
-Editable = Proto.clone().newSlots({
+Editable = Delegator.clone().newSlots({
 	type: "Editable",
 	watchesSlots: true,
 	editableSlotDescriptions: {},
@@ -6,6 +6,8 @@ Editable = Proto.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
+		Delegator.init.call(this);
+		
 		this.setEditableSlotDescriptions(Object_clone(this.editableSlotDescriptions()));
 	},
 	
@@ -43,6 +45,10 @@ Editable = Proto.clone().newSlots({
 				editableSlot.control().performSets(control);
 				editableSlot.setName(name);
 				editableSlot.setObject(this);
+				if (description.label)
+				{
+					editableSlot.label().performSets(description.label).sizeToFit();
+				}
 				this.editableSlots().append(editableSlot);
 			}
 		}

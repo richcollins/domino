@@ -309,6 +309,19 @@ Array.prototype.setSlotsIfAbsent(
 
 		return null;
 	},
+	
+	detectSlot: function(slotName, slotValue)
+	{
+		for(var i = 0; i < this.length; i++)
+		{
+			if (this[i][slotName] == slotValue)
+			{
+				return this[i];
+			}
+		}
+
+		return null;
+	},
 
 	detectIndex: function(callback)
 	{
@@ -564,7 +577,6 @@ Array.prototype.setSlotsIfAbsent(
 		if(i == -1) return null;
 		i = i + 1;
 		if(i > this.length - 1) return null;
-		//console.log("index = " + i + " " + this[i] )
 		if(this[i] != undefined) { return this[i]; }
 		return null;
 	},
@@ -575,7 +587,6 @@ Array.prototype.setSlotsIfAbsent(
 		if(i == -1) return null;
 		i = i - 1;
 		if(i < 0) return null;
-		//console.log("index = " + i + " " + this[i] )
 		if(this[i]) { return this[i]; }
 		return null;
 	}
