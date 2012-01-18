@@ -43,14 +43,14 @@ BorderedButton = Button.clone().newSlots({
 	
 	setWidth: function(w)
 	{
-		this._width = w;
+		this.setCssWidth(w);
 		this.updateStyle();
 		return this;
 	},
 	
 	setHeight: function(h)
 	{
-		this._height = h;
+		this.setCssHeight(h);
 		this.updateStyle();
 		return this;
 	},
