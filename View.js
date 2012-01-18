@@ -500,8 +500,8 @@ View.setSlots({
 	
 	resizeCentered: function()
 	{
-		this.resizeCenteredHorizontally(true);
-		this.resizeCenteredVertically(true);
+		this.resizeCenteredHorizontally();
+		this.resizeCenteredVertically();
 	},
 	
 	resizeCenteredHorizontally: function()
