@@ -172,6 +172,11 @@ View.setSlots({
 		return this;
 	},
 	
+	isLandscape: function()
+	{
+		return this.width() > this.height();
+	},
+	
 	setHidden: function(hidden)
 	{
 		this.setVisibility(hidden ? "hidden" : "visible");
@@ -404,6 +409,11 @@ View.setSlots({
 	moveDown: function(y)
 	{
 		return this.setY(this.y() + y);
+	},
+	
+	moveUp: function(y)
+	{
+		return this.setY(this.y() - y);
 	},
 	
 	autoResizeWidth: function(lastSuperWidth)

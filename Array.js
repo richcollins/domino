@@ -314,6 +314,19 @@ Array.prototype.setSlotsIfAbsent(
 	{
 		for(var i = 0; i < this.length; i++)
 		{
+			if (this[i].conditionallyPerform(slotName) == slotValue)
+			{
+				return this[i];
+			}
+		}
+
+		return null;
+	},
+	
+	detectProperty: function(slotName, slotValue)
+	{
+		for(var i = 0; i < this.length; i++)
+		{
 			if (this[i][slotName] == slotValue)
 			{
 				return this[i];
