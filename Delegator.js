@@ -37,7 +37,7 @@ Delegator = Proto.clone().newSlots({
 			var d = this.delegate();
 
 			messageName = this.delegateMessageName(messageName)
-
+//console.log(messageName);
 			if (d && d.canPerform(messageName))
 			{
 				return d.performWithArgList(messageName, args);

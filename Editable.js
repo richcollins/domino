@@ -1,34 +1,41 @@
 Editable = Delegator.clone().newSlots({
 	type: "Editable",
 	watchesSlots: true,
-	editableSlotDescriptions: {},
+	editableSlotDescriptions: [],
 	editableSlots: null
 }).setSlots({
 	init: function()
 	{
 		Delegator.init.call(this);
 		
-		this.setEditableSlotDescriptions(Object_clone(this.editableSlotDescriptions()));
+		this.setEditableSlotDescriptions(this.editableSlotDescriptions().copy());
 	},
 	
-	newEditableSlot: function(name, value)
+	newEditableSlots: function()
 	{
-		this.newSlot(name, value);
-
-		this["set" + name.asCapitalized()] = function(newValue)
-		{
-			var oldValue = this["_" + name];
-			if (oldValue != newValue)
+		var self = this;
+		Arguments_asArray(arguments).forEach(function(description){
+			self.editableSlotDescriptions().append(description);
+			
+			self.newSlot(description.name, description.value);
+			
+			self["set" + description.name.asCapitalized()] = function(newValue)
 			{
-				this["_" + name] = newValue;
-				if (this.watchesSlots())
+				var oldValue = this["_" + description.name];
+				if (oldValue != newValue)
 				{
-					this.conditionallyPerform("slotChanged", name, oldValue, newValue);
+					this["_" + description.name] = newValue;
+					if (this.watchesSlots())
+					{
+						this.conditionallyPerform("slotChanged", description.name, oldValue, newValue);
+					}
 				}
-			}
 
-			return this;
-		}
+				return this;
+			}
+		});
+		
+		return this;
 	},
 	
 	editableSlots: function()
@@ -36,36 +43,23 @@ Editable = Delegator.clone().newSlots({
 		if (!this._editableSlots)
 		{
 			this._editableSlots = [];
-			for (var name in this.editableSlotDescriptions())
-			{
-				var description = this.editableSlotDescriptions()[name];
+			var self = this;
+			this.editableSlotDescriptions().forEach(function(description){
 				var editableSlot = window["Editable" + description.control.type.asCapitalized() + "Slot"].clone();
 				var control = Object_shallowCopy(description.control);
 				delete control.type;
 				editableSlot.control().performSets(control);
-				editableSlot.setName(name);
-				editableSlot.setObject(this);
+				editableSlot.setName(description.name);
+				editableSlot.setObject(self);
 				if (description.label)
 				{
 					editableSlot.label().performSets(description.label).sizeToFit();
 				}
-				this.editableSlots().append(editableSlot);
-			}
+				self._editableSlots.append(editableSlot);
+			});
 		}
 		
 		return this._editableSlots;
-	},
-	
-	newEditableSlots: function(descriptions)
-	{
-		this.setEditableSlotDescriptions(descriptions);
-		for (var name in this.editableSlotDescriptions())
-		{
-			var description = this.editableSlotDescriptions()[name];
-			this.newEditableSlot(name, description.value);
-		}
-		
-		return this;
 	},
 	
 	asObject: function()

@@ -43,7 +43,7 @@ class Importer
   
   def compress
     compressed_out_path = out_path.gsub(/\.js$/, '-compressed.js')
-    cmd = "java -jar #{yui_compressor_path} #{out_path} > #{compressed_out_path}"
+    cmd = "java -jar #{yui_compressor_path} #{out_path} -o #{compressed_out_path}"
     `#{cmd}`
   end
   

@@ -20,7 +20,6 @@ SlotEditorView = TableView.clone().newSlots({
 		{
 			this._object = object;
 
-			var rows = this.rows();
 			this.empty();
 
 			var self = this;

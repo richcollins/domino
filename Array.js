@@ -75,6 +75,22 @@ Array.prototype.setSlotsIfAbsent(
 		this.splice(i, 1);
 		return this;
 	},
+	
+	insertAt: function(i, obj)
+	{
+		this.splice(i, 1, obj);
+	},
+	
+	replace: function(obj, withObj)
+	{
+		var i = this.indexOf(obj);
+		if (i > -1)
+		{
+			this.removeAt(i);
+			this.insertAt(i, withObj);
+		}
+		return this;
+	},
 
 	copy: function()
 	{
@@ -294,6 +310,17 @@ Array.prototype.setSlotsIfAbsent(
 		{
 			args[args.length - 1] = i;
 			return e[messageName].apply(e, args);
+		});
+	},
+	
+	rejectPerform: function(messageName)
+	{
+		var args = this.argsAsArray(arguments).slice(1);
+		args.push(0);
+		return this.filter(function(e, i)
+		{
+			args[args.length - 1] = i;
+			return !e[messageName].apply(e, args);
 		});
 	},
 

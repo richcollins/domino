@@ -574,6 +574,22 @@ Array.prototype.setSlotsIfAbsent(
 		this.splice(i, 1);
 		return this;
 	},
+	
+	insertAt: function(i, obj)
+	{
+		this.splice(i, 1, obj);
+	},
+	
+	replace: function(obj, withObj)
+	{
+		var i = this.indexOf(obj);
+		if (i > -1)
+		{
+			this.removeAt(i);
+			this.insertAt(i, withObj);
+		}
+		return this;
+	},
 
 	copy: function()
 	{
@@ -795,6 +811,17 @@ Array.prototype.setSlotsIfAbsent(
 			return e[messageName].apply(e, args);
 		});
 	},
+	
+	rejectPerform: function(messageName)
+	{
+		var args = this.argsAsArray(arguments).slice(1);
+		args.push(0);
+		return this.filter(function(e, i)
+		{
+			args[args.length - 1] = i;
+			return !e[messageName].apply(e, args);
+		});
+	},
 
 	detect: function(callback)
 	{
@@ -810,6 +837,19 @@ Array.prototype.setSlotsIfAbsent(
 	},
 	
 	detectSlot: function(slotName, slotValue)
+	{
+		for(var i = 0; i < this.length; i++)
+		{
+			if (this[i].conditionallyPerform(slotName) == slotValue)
+			{
+				return this[i];
+			}
+		}
+
+		return null;
+	},
+	
+	detectProperty: function(slotName, slotValue)
 	{
 		for(var i = 0; i < this.length; i++)
 		{
@@ -1467,7 +1507,7 @@ Delegator = Proto.clone().newSlots({
 			var d = this.delegate();
 
 			messageName = this.delegateMessageName(messageName)
-
+//console.log(messageName);
 			if (d && d.canPerform(messageName))
 			{
 				return d.performWithArgList(messageName, args);
@@ -1707,6 +1747,11 @@ View.setSlots({
 		return this;
 	},
 	
+	isLandscape: function()
+	{
+		return this.width() > this.height();
+	},
+	
 	setHidden: function(hidden)
 	{
 		this.setVisibility(hidden ? "hidden" : "visible");
@@ -1941,6 +1986,11 @@ View.setSlots({
 		return this.setY(this.y() + y);
 	},
 	
+	moveUp: function(y)
+	{
+		return this.setY(this.y() - y);
+	},
+	
 	autoResizeWidth: function(lastSuperWidth)
 	{
 		if (!this.autoResizes())
@@ -2035,8 +2085,8 @@ View.setSlots({
 	
 	resizeCentered: function()
 	{
-		this.resizeCenteredHorizontally(true);
-		this.resizeCenteredVertically(true);
+		this.resizeCenteredHorizontally();
+		this.resizeCenteredVertically();
 	},
 	
 	resizeCenteredHorizontally: function()
@@ -2384,6 +2434,58 @@ TextField = Label.clone().newSlots({
 		{
 			return text;
 		}
+	},
+	
+	selectAll: function()
+	{
+		this.element().select();
+	},
+	
+	focus: function()
+	{
+		this.element().focus();
+	},
+	
+	value: function()
+	{
+		return this.text();
+	},
+	
+	setValue: function(value)
+	{
+		this.setText(value);
+	}
+});
+
+TextArea = Label.clone().newSlots({
+	type: "TextArea",
+	elementName: "textarea"
+}).setSlots({
+	initElement: function()
+	{
+		View.initElement.call(this);
+		
+		var e = this.element();
+		
+		e.style.margin = "";
+		e.style.padding = "";
+		
+		var self = this;
+		e.onblur = function(evt)
+		{
+			self.delegatePerform("editingEnded", self);
+		}
+	},
+	
+	setText: function(text)
+	{
+		this.element().value = text;
+		return this;
+	},
+	
+	text: function()
+	{
+		return this.element().value;
 	},
 	
 	selectAll: function()
@@ -3267,14 +3369,14 @@ BorderedButton = Button.clone().newSlots({
 	
 	setWidth: function(w)
 	{
-		this._width = w;
+		this.setCssWidth(w);
 		this.updateStyle();
 		return this;
 	},
 	
 	setHeight: function(h)
 	{
-		this._height = h;
+		this.setCssHeight(h);
 		this.updateStyle();
 		return this;
 	},
@@ -3406,6 +3508,8 @@ VideoView = View.clone().newSlots({
 		{
 			this.element().removeAttribute("webkit-playsinline")
 		}
+		
+		return this;
 	},
 	
 	setAutoplay: function(autoplay)
@@ -3423,13 +3527,13 @@ VideoView = View.clone().newSlots({
 	
 	load: function()
 	{
-		this.setInline(this.inline());
+		//this.setInline(this.inline());
 		this.element().load();
 	},
 	
 	play: function()
 	{
-		this.setInline(this.inline()); //hack - o.w. it doesn't always play inline :-/
+		//this.setInline(this.inline()); //hack - o.w. it doesn't always play inline on mobile :-/
 		this.element().play();
 	},
 	
@@ -3446,34 +3550,41 @@ VideoView = View.clone().newSlots({
 Editable = Delegator.clone().newSlots({
 	type: "Editable",
 	watchesSlots: true,
-	editableSlotDescriptions: {},
+	editableSlotDescriptions: [],
 	editableSlots: null
 }).setSlots({
 	init: function()
 	{
 		Delegator.init.call(this);
 		
-		this.setEditableSlotDescriptions(Object_clone(this.editableSlotDescriptions()));
+		this.setEditableSlotDescriptions(this.editableSlotDescriptions().copy());
 	},
 	
-	newEditableSlot: function(name, value)
+	newEditableSlots: function()
 	{
-		this.newSlot(name, value);
-
-		this["set" + name.asCapitalized()] = function(newValue)
-		{
-			var oldValue = this["_" + name];
-			if (oldValue != newValue)
+		var self = this;
+		Arguments_asArray(arguments).forEach(function(description){
+			self.editableSlotDescriptions().append(description);
+			
+			self.newSlot(description.name, description.value);
+			
+			self["set" + description.name.asCapitalized()] = function(newValue)
 			{
-				this["_" + name] = newValue;
-				if (this.watchesSlots())
+				var oldValue = this["_" + description.name];
+				if (oldValue != newValue)
 				{
-					this.conditionallyPerform("slotChanged", name, oldValue, newValue);
+					this["_" + description.name] = newValue;
+					if (this.watchesSlots())
+					{
+						this.conditionallyPerform("slotChanged", description.name, oldValue, newValue);
+					}
 				}
-			}
 
-			return this;
-		}
+				return this;
+			}
+		});
+		
+		return this;
 	},
 	
 	editableSlots: function()
@@ -3481,36 +3592,23 @@ Editable = Delegator.clone().newSlots({
 		if (!this._editableSlots)
 		{
 			this._editableSlots = [];
-			for (var name in this.editableSlotDescriptions())
-			{
-				var description = this.editableSlotDescriptions()[name];
+			var self = this;
+			this.editableSlotDescriptions().forEach(function(description){
 				var editableSlot = window["Editable" + description.control.type.asCapitalized() + "Slot"].clone();
 				var control = Object_shallowCopy(description.control);
 				delete control.type;
 				editableSlot.control().performSets(control);
-				editableSlot.setName(name);
-				editableSlot.setObject(this);
+				editableSlot.setName(description.name);
+				editableSlot.setObject(self);
 				if (description.label)
 				{
 					editableSlot.label().performSets(description.label).sizeToFit();
 				}
-				this.editableSlots().append(editableSlot);
-			}
+				self._editableSlots.append(editableSlot);
+			});
 		}
 		
 		return this._editableSlots;
-	},
-	
-	newEditableSlots: function(descriptions)
-	{
-		this.setEditableSlotDescriptions(descriptions);
-		for (var name in this.editableSlotDescriptions())
-		{
-			var description = this.editableSlotDescriptions()[name];
-			this.newEditableSlot(name, description.value);
-		}
-		
-		return this;
 	},
 	
 	asObject: function()
@@ -3617,6 +3715,16 @@ EditableTextFieldSlot = EditableSlot.clone().newSlots({
 	}
 });
 
+EditableTextAreaSlot = EditableSlot.clone().newSlots({
+	type: "EditableTextAreaSlot",
+	controlProto: TextArea
+}).setSlots({
+	textAreaEditingEnded: function(tf)
+	{
+		this.updateValue();
+	}
+});
+
 SlotEditorView = TableView.clone().newSlots({
 	type: "SlotEditorView",
 	object: null
@@ -3639,7 +3747,6 @@ SlotEditorView = TableView.clone().newSlots({
 		{
 			this._object = object;
 
-			var rows = this.rows();
 			this.empty();
 
 			var self = this;

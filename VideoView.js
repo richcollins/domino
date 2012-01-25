@@ -80,6 +80,8 @@ VideoView = View.clone().newSlots({
 		{
 			this.element().removeAttribute("webkit-playsinline")
 		}
+		
+		return this;
 	},
 	
 	setAutoplay: function(autoplay)
@@ -97,13 +99,13 @@ VideoView = View.clone().newSlots({
 	
 	load: function()
 	{
-		this.setInline(this.inline());
+		//this.setInline(this.inline());
 		this.element().load();
 	},
 	
 	play: function()
 	{
-		this.setInline(this.inline()); //hack - o.w. it doesn't always play inline :-/
+		//this.setInline(this.inline()); //hack - o.w. it doesn't always play inline on mobile :-/
 		this.element().play();
 	},
 	
