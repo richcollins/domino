@@ -16,5 +16,7 @@ Label = View.clone().newSlots({
 	{
 		this._text = text;
 		this.element().innerText = text;
+		
+		return this;
 	}
 });

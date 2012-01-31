@@ -39,6 +39,16 @@ View = Delegator.clone().newSlots({
 	y: { name: "top", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	cssWidth: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	cssHeight: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	leftBorderThickness: { name: "borderLeftWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	rightBorderThickness: { name: "borderRightWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	topBorderThickness: { name: "borderTopWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	bottomBorderThickness: { name: "borderBottomWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	leftPaddingThickness: { name: "paddingLeft", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	rightPaddingThickness: { name: "paddingRight", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	topPaddingThickness: { name: "paddingTop", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	bottomPaddingThickness: { name: "paddingBottom", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	borderColor: { value: Color.Black, transformation: { name: "color" } },
 	backgroundColor: { value: Color.Transparent, transformation: { name: "color" } },
 	visibility: { value: "visible" },
 	zIndex: { value: 0 }
@@ -75,6 +85,45 @@ View.setSlots({
 		this.element().id = this.elementId();
 		this.styleSlots().forEach(function(ss){
 			self.perform("set" + ss.name().asCapitalized(), self.perform(ss.name()));
+		});
+	},
+	
+	setBorderThickness: function(t)
+	{
+		if (t > 0)
+		{
+			this.element().style.borderStyle = "solid";
+		}
+		
+		return this.performSets({
+			leftBorderThickness: t,
+			rightBorderThickness: t,
+			topBorderThickness: t,
+			bottomBorderThickness: t
+		});
+	},
+	
+	setPaddingThickness: function(t)
+	{
+		return this.performSets({
+			verticalPaddingThickness: t,
+			horizontalPaddingThickness: t
+		});
+	},
+	
+	setVerticalPaddingThickness: function(t)
+	{
+		return this.performSets({
+			topPaddingThickness: t/2,
+			bottomPaddingThickness: t/2
+		})
+	},
+	
+	setHorizontalPaddingThickness: function(t)
+	{
+		return this.performSets({
+			leftPaddingThickness: t/2,
+			rightPaddingThickness: t/2
 		});
 	},
 	
@@ -146,13 +195,13 @@ View.setSlots({
 	
 	width: function()
 	{
-		return this.cssWidth();
+		return this.cssWidth() + this.leftBorderThickness() + this.rightBorderThickness() + this.leftPaddingThickness() + this.rightPaddingThickness();
 	},
 	
 	setWidth: function(w)
 	{
 		var lastWidth = this.width();
-		this.setCssWidth(w);
+		this.setCssWidth(w - this.leftBorderThickness() - this.rightBorderThickness() - this.leftPaddingThickness() - this.rightPaddingThickness());
 		this.subviews().forEachPerform("autoResizeWidth", lastWidth);
 		
 		return this;
@@ -160,13 +209,13 @@ View.setSlots({
 	
 	height: function()
 	{
-		return this.cssHeight();
+		return this.cssHeight() + this.topBorderThickness() + this.bottomBorderThickness() + this.topPaddingThickness() + this.bottomPaddingThickness();
 	},
 	
 	setHeight: function(h)
 	{
 		var lastHeight = this.height();
-		this.setCssHeight(h);
+		this.setCssHeight(h - this.topBorderThickness() - this.bottomBorderThickness() - this.topPaddingThickness() - this.bottomPaddingThickness());
 		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
 		
 		return this;
@@ -300,6 +349,14 @@ View.setSlots({
 		this.element().appendChild(subview.element());
 		
 		subview.conditionallyPerform("superviewChanged");
+		
+		return this;
+	},
+	
+	addToView: function(v)
+	{
+		v.addSubview(this);
+		return this;
 	},
 	
 	addSubviews: function()
@@ -353,6 +410,11 @@ View.setSlots({
 		this.setY(view.bottomEdge() - this.height() - 1);
 	},
 	
+	alignLeftTo: function(view)
+	{
+		this.setX(view.x());
+	},
+	
 	alignRightTo: function(view)
 	{
 		this.setX(view.rightEdge() - this.width() - 1);
@@ -365,7 +427,7 @@ View.setSlots({
 	
 	centerYOver: function(view)
 	{
-		this.setY(view.y() + (view.height() - this.height())/2);
+		return this.setY(view.y() + (view.height() - this.height())/2);
 	},
 	
 	centerOver: function(view)
@@ -401,9 +463,32 @@ View.setSlots({
 	
 	moveToBottom: function(margin)
 	{
-		margin = margin || 0;
-		
-		this.setY(this.superview().height() - this.height() - margin);
+		if (this.superview())
+		{
+			margin = margin || 0;
+
+			this.setY(this.superview().height() - this.height() - margin);
+		}
+	},
+	
+	moveToRight: function(margin)
+	{
+		if (this.superview())
+		{
+			margin = margin || 0;
+
+			this.setX(this.superview().width() - this.width() - margin);
+		}
+	},
+	
+	moveLeft: function(x)
+	{
+		return this.setX(this.x() - x);
+	},
+	
+	moveRight: function(x)
+	{
+		return this.setX(this.x() + x);
 	},
 	
 	moveDown: function(y)
@@ -418,7 +503,7 @@ View.setSlots({
 	
 	autoResizeWidth: function(lastSuperWidth)
 	{
-		if (!this.autoResizes())
+		if (!this.autoResizes() || !this.superview())
 		{
 			return;
 		}
@@ -461,7 +546,7 @@ View.setSlots({
 	
 	autoResizeHeight: function(lastSuperHeight)
 	{
-		if (!this.autoResizes())
+		if (!this.autoResizes() || !this.superview())
 		{
 			return;
 		}
@@ -512,6 +597,7 @@ View.setSlots({
 	{
 		this.resizeCenteredHorizontally();
 		this.resizeCenteredVertically();
+		return this;
 	},
 	
 	resizeCenteredHorizontally: function()
@@ -535,17 +621,20 @@ View.setSlots({
 	scaleToFitSuperview: function()
 	{
 		var superview = this.superview();
-		var aspectRatio = this.width() / this.height();
+		if (superview)
+		{
+			var aspectRatio = this.width() / this.height();
 
-		if(aspectRatio > superview.width()/superview.height())
-		{
-			this.setWidth(superview.width());
-			this.setHeight(superview.width() / aspectRatio);
-		}
-		else
-		{
-			this.setWidth(superview.height() * aspectRatio);
-			this.setHeight(superview.height());
+			if(aspectRatio > superview.width()/superview.height())
+			{
+				this.setWidth(superview.width());
+				this.setHeight(superview.width() / aspectRatio);
+			}
+			else
+			{
+				this.setWidth(superview.height() * aspectRatio);
+				this.setHeight(superview.height());
+			}
 		}
 	},
 	
@@ -566,8 +655,9 @@ View.setSlots({
 	{
 		var e = this.sizingElement();
 		var s = e.style;
-		this.setWidth(e.offsetWidth);
+		this.setWidth(e.offsetWidth + (this.width() - this.cssWidth()));
 		document.body.removeChild(e);
+		return this;
 	},
 	
 	sizeHeightToFit: function()
@@ -575,19 +665,24 @@ View.setSlots({
 		var e = this.sizingElement();
 		var s = e.style;
 		s.width = this.width() + "px";
-		this.setHeight(e.offsetHeight);
+		this.setHeight(e.offsetHeight + (this.height() - this.cssHeight()));
 		document.body.removeChild(e);
+		return this;
 	},
 	
 	sizeToFit: function()
 	{
 		this.sizeWidthToFit();
 		this.sizeHeightToFit();
+		return this;
 	},
 	
 	moveToBack: function()
 	{
-		this.setZIndex(this.superview().subviews().mapPerform("zIndex").min() - 1);
+		if (this.superview())
+		{
+			this.setZIndex(this.superview().subviews().mapPerform("zIndex").min() - 1);
+		}
 	},
 	
 	//animations

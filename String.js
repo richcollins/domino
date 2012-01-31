@@ -105,6 +105,27 @@ String.prototype.setSlotsIfAbsent(
 			return this.slice(index + aString.length);
 		}
 	},
+	
+	between: function(prefix, suffix)
+	{
+		var after = this.after(prefix);
+		if (after != null)
+		{
+			var before = after.before(suffix);
+			if (before != null)
+			{
+				return before;
+			}
+			else
+			{
+				return null;
+			}
+		}
+		else
+		{
+			return null;
+		}
+	},
 
 	asUncapitalized: function()
 	{

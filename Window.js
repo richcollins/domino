@@ -15,7 +15,14 @@ Window = View.clone().newSlots({
 		
 		window.onresize = function()
 		{
+			//alert("window.onresize");
 			Window.autoResize();
+		}
+		
+		var self = this;
+		window.onmessage = function(e)
+		{
+			self.delegatePerform("messagedFrom", e.data, e.origin);
 		}
 		
 		/* Doesn't work for some reason.  Add it to html for now

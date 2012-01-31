@@ -9,6 +9,31 @@ Number.prototype.setSlots(
 	{
 		return this;
 	},
+	
+	seconds: function()
+	{
+		return Number(this) * 1000;
+	},
+	
+	minutes: function()
+	{
+		return this.seconds() * 60;
+	},
+	
+	hours: function()
+	{
+		return this.minutes() * 60;
+	},
+	
+	days: function()
+	{
+		return this.hours() * 24;
+	},
+	
+	years: function()
+	{
+		return this.days() * 365;
+	},
 
 	repeat: function(callback)
 	{

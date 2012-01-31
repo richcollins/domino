@@ -17,7 +17,10 @@ ScrollView = View.clone().newSlots({
 	
 	setContentView: function(contentView)
 	{
-		this.removeSubview(this._contentView);
+		if (this._contentView)
+		{
+			this._contentView.removeFromSuperview();
+		}
 		this.addSubview(contentView);
 		this._contentView = contentView;
 		return this;

@@ -11,6 +11,8 @@ TextField = Label.clone().newSlots({
 		
 		var e = this.element();
 		
+		e.type = "text";
+		
 		e.style.margin = "";
 		e.style.padding = "";
 		
@@ -84,11 +86,11 @@ TextField = Label.clone().newSlots({
 		e.style.top = screen.height + "px";
 		if (this.text() == "")
 		{
-			e.innerText = this.placeholderText();
+			e.innerText = this.placeholderText() || " ";
 		}
 		else
 		{
-			e.innerText = this.text()
+			e.innerText = this.text();
 		}
 		document.body.appendChild(e);
 		return e;

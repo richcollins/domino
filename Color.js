@@ -17,6 +17,15 @@ Color = Proto.clone().newSlots({
 	withRGB: function(r, g, b)
 	{
 		return this.withRGBA(r, g, b, 1);
+	},
+	
+	withHex: function(hex)
+	{
+		return Color.withRGB(
+			parseInt(hex.substring(0, 2), 16)/255,
+			parseInt(hex.substring(2, 4), 16)/255,
+			parseInt(hex.substring(4, 6), 16)/255
+		)
 	}
 });
 
@@ -27,4 +36,5 @@ Color.setSlots({
 	Gray: Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
 	DimGray: Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
 	Black: Color.clone(),
+	Red: Color.clone().setRed(255)
 });

@@ -8,6 +8,7 @@ Importer.importPaths([
 	"Number",
 	"String",
 	"NodeWrapper",
+	"Cookie",
 	
 	"Color",
 	"Delegator",

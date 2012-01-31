@@ -18,6 +18,17 @@ Object_shallowCopy = function(obj)
 	return newObj;
 }
 
+function Object_eachSlot(obj, fn)
+{
+	for (var name in obj)
+	{
+		if (obj.hasOwnProperty(name))
+		{
+			fn(name, obj[name]);
+		}
+	}
+}
+
 Arguments_asArray = function(args)
 {
 	return Array.prototype.slice.call(args);

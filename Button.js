@@ -16,6 +16,18 @@ Button = Label.clone().newSlots({
 		e.style.cursor = "pointer";
 	},
 	
+	disable: function()
+	{
+		this.setColor(this.color().setAlpha(.5));
+		this.setMessagesDelegate(false);
+	},
+	
+	enable: function()
+	{
+		this.setColor(this.color().setAlpha(1.0));
+		this.setMessagesDelegate(true);
+	},
+	
 	simulateClick: function()
 	{
 		var clickEvent = document.createEvent("MouseEvents");
