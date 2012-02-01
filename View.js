@@ -50,7 +50,7 @@ View = Delegator.clone().newSlots({
 	borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	borderColor: { value: Color.Black, transformation: { name: "color" } },
 	backgroundColor: { value: Color.Transparent, transformation: { name: "color" } },
-	visibility: { value: "visible" },
+	display: { value: "block" },
 	zIndex: { value: 0 }
 });
 
@@ -217,7 +217,10 @@ View.setSlots({
 		var lastHeight = this.height();
 		this.setCssHeight(h - this.topBorderThickness() - this.bottomBorderThickness() - this.topPaddingThickness() - this.bottomPaddingThickness());
 		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
-		
+		if  (lastHeight != h)
+		{
+			this.delegatePerform("heightChanged");
+		}
 		return this;
 	},
 	
@@ -228,13 +231,13 @@ View.setSlots({
 	
 	setHidden: function(hidden)
 	{
-		this.setVisibility(hidden ? "hidden" : "visible");
-		this.subviews().forEachPerform("setVisibility", this.visibility());
+		this._hidden = hidden;
+		this.setDisplay(hidden ? "none" : "block");
 	},
 	
 	hidden: function()
 	{
-		return this.visibility() == "hidden";
+		return this.display() == "none";
 	},
 	
 	show: function()
@@ -642,6 +645,7 @@ View.setSlots({
 	{
 		var e = this.element().cloneNode(true);
 		var s = e.style;
+		s.display = "block";
 		s.position = "fixed";
 		s.width = "";
 		s.height = "";
@@ -698,6 +702,7 @@ View.setSlots({
 			self.element().style.opacity = 1 - (elapsed/duration);
 			if (elapsed >= duration)
 			{
+				self.delegatePerform("fadedOut");
 				clearInterval(interval);
 				self.hide();
 				self.element().style.opacity = initialOpacity;

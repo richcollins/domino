@@ -2,6 +2,7 @@ EditableSlot = Proto.clone().newSlots({
 	type: "EditableSlot",
 	object: null,
 	name: null,
+	normalizer: null,
 	label: null,
 	labelText: null,
 	control: null,
@@ -31,9 +32,20 @@ EditableSlot = Proto.clone().newSlots({
 		return this._control;
 	},
 	
-	updateValue: function(v)
+	updateValue: function()
 	{
-		this.object().perform("set" + this.name().asCapitalized(), this.control().value());
+		var v = this.control().value();
+		var normalizer = this.normalizer() || function(v){ return v };
+		try
+		{
+			v = normalizer(v);
+		}
+		catch (e)
+		{
+			console.log(e);
+		}
+		
+		this.object().perform("set" + this.name().asCapitalized(), v)
 	},
 	
 	value: function()

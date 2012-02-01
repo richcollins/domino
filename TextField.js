@@ -7,14 +7,11 @@ TextField = Label.clone().newSlots({
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		NativeControl.initElement.call(this); //hack since TextField clones Label
 		
 		var e = this.element();
 		
 		e.type = "text";
-		
-		e.style.margin = "";
-		e.style.padding = "";
 		
 		var self = this;
 		e.onkeydown = function(evt)

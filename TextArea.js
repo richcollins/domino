@@ -1,10 +1,10 @@
-TextArea = Label.clone().newSlots({
+TextArea = NativeControl.clone().newSlots({
 	type: "TextArea",
 	elementName: "textarea"
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		NativeControl.initElement.call(this);
 		
 		var e = this.element();
 		

@@ -19,6 +19,7 @@ Importer.importPaths([
 	"View",
 	"Window",
 	"Label",
+	"NativeControl",
 	"TextField",
 	"TextArea",
 	"Button",
@@ -33,6 +34,7 @@ Importer.importPaths([
 	"BorderedButton",
 	"ImageButton",
 	"VideoView",
+	"AsyncQueue",
 	
 	"Editable",
 	"EditableSlot",

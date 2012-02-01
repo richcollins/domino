@@ -1,11 +1,11 @@
-CheckBox = View.clone().newSlots({
+CheckBox = NativeControl.clone().newSlots({
 	type: "CheckBox",
 	elementName: "input",
 	checked: false
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		NativeControl.init.call(this);
 		this.sizeToFit();
 	},
 	

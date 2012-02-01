@@ -27,7 +27,7 @@ Editable = Delegator.clone().newSlots({
 					this["_" + description.name] = newValue;
 					if (this.watchesSlots())
 					{
-						this.conditionallyPerform("slotChanged", description.name, oldValue, newValue);
+						this.delegatePerform("slotChanged", description.name, oldValue, newValue);
 					}
 				}
 
@@ -50,6 +50,7 @@ Editable = Delegator.clone().newSlots({
 				delete control.type;
 				editableSlot.control().performSets(control);
 				editableSlot.setName(description.name);
+				editableSlot.setNormalizer(description.normalizer);
 				editableSlot.setObject(self);
 				if (description.label)
 				{

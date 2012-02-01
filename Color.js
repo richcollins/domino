@@ -36,5 +36,7 @@ Color.setSlots({
 	Gray: Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
 	DimGray: Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
 	Black: Color.clone(),
-	Red: Color.clone().setRed(255)
+	Red: Color.clone().setRed(1.0),
+	Green: Color.clone().setGreen(1.0),
+	DarkGreen: Color.clone().setGreen(100/255),
 });

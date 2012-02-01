@@ -1,10 +1,10 @@
-DropDown = View.clone().newSlots({
+DropDown = NativeControl.clone().newSlots({
 	type: "DropDown",
 	elementName: "select",
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		NativeControl.initElement.call(this);
 		
 		var self = this;
 		

@@ -164,7 +164,6 @@ TableView = View.clone().newSlots({
 				}
 			}
 		}
-		
 		return this;
 	}
 });
