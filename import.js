@@ -16,6 +16,7 @@ Importer.importPaths([
 	"ColorTransformation",
 	"SuffixTransformation",
 	"RoundedSuffixTransformation",
+	"Point",
 	"View",
 	"Window",
 	"Label",

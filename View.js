@@ -224,9 +224,27 @@ View.setSlots({
 		return this;
 	},
 	
+	size: function()
+	{
+		return Point.withXY(this.width(), this.height());
+	},
+	
+	setSize: function(size)
+	{
+		return this.performSets({
+			width: size.x(),
+			height: size.y()
+		});
+	},
+	
 	isLandscape: function()
 	{
-		return this.width() > this.height();
+		return this.size().isLandscape();
+	},
+	
+	aspectRatio: function()
+	{
+		return this.size().aspectRatio();
 	},
 	
 	setHidden: function(hidden)
@@ -626,18 +644,7 @@ View.setSlots({
 		var superview = this.superview();
 		if (superview)
 		{
-			var aspectRatio = this.width() / this.height();
-
-			if(aspectRatio > superview.width()/superview.height())
-			{
-				this.setWidth(superview.width());
-				this.setHeight(superview.width() / aspectRatio);
-			}
-			else
-			{
-				this.setWidth(superview.height() * aspectRatio);
-				this.setHeight(superview.height());
-			}
+			this.setSize(this.size().scaleToFitPoint(superview.size()));
 		}
 	},
 	
