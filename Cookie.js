@@ -33,11 +33,15 @@ Cookie = Proto.clone().newSlots({
 		return this.setExpirationDate(new Date(new Date().getTime() + (1).years())).save();
 	},
 	
-	save: function()
+	toString: function()
 	{
 		var expires = this.expirationDate() ? this.expirationDate().toGMTString() : "";
-		
-		document.cookie = this.name() + "=" + this.value() + "; expires=" + expires + "; path=" + this.path();
+		return this.name() + "=" + this.value() + "; expires=" + expires + "; path=" + this.path();
+	},
+	
+	save: function()
+	{
+		document.cookie = this.toString();
 		
 		return this;
 	}

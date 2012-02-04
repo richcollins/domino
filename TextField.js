@@ -69,14 +69,18 @@ TextField = Label.clone().newSlots({
 	sizingElement: function()
 	{
 		var e = document.createElement("div");
-		//e.style = window.getComputedStyle(this.element());
-		var myStyle = window.getComputedStyle(this.element());
+
+		var clonedElement = this.element().cloneNode(true);
+		document.body.appendChild(clonedElement);
+		var myStyle = window.getComputedStyle(clonedElement);
 		for (var i = myStyle.length - 1; i > -1; i --)
 		{
 		    var name = myStyle[i];
 		    e.style.setProperty(name, myStyle.getPropertyValue(name));
 		}
+		document.body.removeChild(clonedElement);
 
+		e.style.display = "block";
 		e.style.position = "fixed";
 		e.style.width = "";
 		e.style.height = "";
@@ -93,11 +97,20 @@ TextField = Label.clone().newSlots({
 		return e;
 	},
 	
-	sizeWidthToFit: function()
+	width: function()
 	{
-		View.sizeWidthToFit.call(this);
-		this.setWidth(this.width() + 2);
-		return this;
+		var style = window.getComputedStyle(this.element());
+		return this.cssWidth() +
+			parseFloat(style.getPropertyValue("padding-left") || 0) +
+			parseFloat(style.getPropertyValue("padding-right") || 0) +
+			parseFloat(style.getPropertyValue("border-left-width") || 0) +
+			parseFloat(style.getPropertyValue("border-right-width") || 0) + 2;
+	},
+	
+	height: function()
+	{
+		var style = window.getComputedStyle(this.element());
+		return this.cssHeight() + parseFloat(style.getPropertyValue("padding-top") || 0) + parseFloat(style.getPropertyValue("padding-bottom") || 0) + parseFloat(style.getPropertyValue("border-top-width") || 0) + parseFloat(style.getPropertyValue("border-bottom-width") || 0);
 	},
 	
 	checkChanged: function()
