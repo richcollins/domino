@@ -36,6 +36,7 @@ class Importer
   end
   
   def concat
+    puts out_path
     open(out_path, "w") do |f|
       f.write(javascript_chunks.join("\n"))
     end
@@ -44,6 +45,7 @@ class Importer
   def compress
     compressed_out_path = out_path.gsub(/\.js$/, '-compressed.js')
     cmd = "java -jar #{yui_compressor_path} #{out_path} -o #{compressed_out_path}"
+    puts cmd
     `#{cmd}`
   end
   

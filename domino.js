@@ -18,6 +18,17 @@ Object_shallowCopy = function(obj)
 	return newObj;
 }
 
+function Object_eachSlot(obj, fn)
+{
+	for (var name in obj)
+	{
+		if (obj.hasOwnProperty(name))
+		{
+			fn(name, obj[name]);
+		}
+	}
+}
+
 Arguments_asArray = function(args)
 {
 	return Array.prototype.slice.call(args);
@@ -1142,6 +1153,31 @@ Number.prototype.setSlots(
 	{
 		return this;
 	},
+	
+	seconds: function()
+	{
+		return Number(this) * 1000;
+	},
+	
+	minutes: function()
+	{
+		return this.seconds() * 60;
+	},
+	
+	hours: function()
+	{
+		return this.minutes() * 60;
+	},
+	
+	days: function()
+	{
+		return this.hours() * 24;
+	},
+	
+	years: function()
+	{
+		return this.days() * 365;
+	},
 
 	repeat: function(callback)
 	{
@@ -1273,6 +1309,27 @@ String.prototype.setSlotsIfAbsent(
 		else
 		{
 			return this.slice(index + aString.length);
+		}
+	},
+	
+	between: function(prefix, suffix)
+	{
+		var after = this.after(prefix);
+		if (after != null)
+		{
+			var before = after.before(suffix);
+			if (before != null)
+			{
+				return before;
+			}
+			else
+			{
+				return null;
+			}
+		}
+		else
+		{
+			return null;
 		}
 	},
 
@@ -1437,6 +1494,54 @@ NodeWrapper = Proto.clone().newSlots({
 		return this.node().textContent;
 	}
 });
+Cookie = Proto.clone().newSlots({
+	type: "Cookie",
+	name: null,
+	value: null,
+	expirationDate: null,
+	path: "/"
+}).setSlots({
+	cookieMap: function()
+	{
+		var map = {};
+		
+		document.cookie.split("; ").forEach(function(pair){
+			var name = pair.before("=");
+			var value = pair.after("=");
+			map[name] = Cookie.clone().setName(name).setValue(value);
+		});
+		
+		return map;
+	},
+	
+	at: function(name)
+	{
+		return this.cookieMap()[name];
+	},
+	
+	remove: function()
+	{
+		return this.setExpirationDate(new Date(0)).save();
+	},
+	
+	renewOneYear: function()
+	{
+		return this.setExpirationDate(new Date(new Date().getTime() + (1).years())).save();
+	},
+	
+	toString: function()
+	{
+		var expires = this.expirationDate() ? this.expirationDate().toGMTString() : "";
+		return this.name() + "=" + this.value() + "; expires=" + expires + "; path=" + this.path();
+	},
+	
+	save: function()
+	{
+		document.cookie = this.toString();
+		
+		return this;
+	}
+});
 Color = Proto.clone().newSlots({
 	red: 0,
 	green: 0,
@@ -1456,6 +1561,15 @@ Color = Proto.clone().newSlots({
 	withRGB: function(r, g, b)
 	{
 		return this.withRGBA(r, g, b, 1);
+	},
+	
+	withHex: function(hex)
+	{
+		return Color.withRGB(
+			parseInt(hex.substring(0, 2), 16)/255,
+			parseInt(hex.substring(2, 4), 16)/255,
+			parseInt(hex.substring(4, 6), 16)/255
+		)
 	}
 });
 
@@ -1466,6 +1580,9 @@ Color.setSlots({
 	Gray: Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
 	DimGray: Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
 	Black: Color.clone(),
+	Red: Color.clone().setRed(1.0),
+	Green: Color.clone().setGreen(1.0),
+	DarkGreen: Color.clone().setGreen(100/255),
 });
 
 Delegator = Proto.clone().newSlots({
@@ -1573,6 +1690,68 @@ RoundedSuffixTransformation = Proto.clone().setSlots({
 	}
 });
 
+Point = Proto.clone().newSlots({
+	type: "Point",
+	x: 0,
+	y: 0
+}).setSlots({
+	scaleToFitPoint: function(point)
+	{
+		var aspectRatio = this.aspectRatio();
+
+		if(aspectRatio > point.x()/point.y())
+		{
+			this.setX(point.x());
+			this.setY(point.x() / aspectRatio);
+		}
+		else
+		{
+			this.setX(point.y() * aspectRatio);
+			this.setY(point.y());
+		}
+		return this;
+	},
+	
+	aspectRatio: function()
+	{
+		return this.x()/this.y();
+	},
+	
+	withXY: function(x, y)
+	{
+		return this.clone().setX(x).setY(y);
+	},
+	
+	isPortrait: function()
+	{
+		return this.aspectRatio() <= 1;
+	},
+	
+	isLandscape: function()
+	{
+		return this.aspectRatio() > 1;
+	},
+	
+	translateY: function(y)
+	{
+		return this.setY(this.y() + y);
+	},
+	
+	asLandscape: function()
+	{
+		return this.isLandscape() ? this : this.transposed();
+	},
+	
+	asPortrait: function()
+	{
+		return this.isPortrait() ? this : this.transposed();
+	},
+	
+	transposed: function()
+	{
+		return this.clone().setX(this.y()).setY(this.x());
+	}
+})
 View = Delegator.clone().newSlots({
 	type: "View",
 	superview: null,
@@ -1614,8 +1793,18 @@ View = Delegator.clone().newSlots({
 	y: { name: "top", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	cssWidth: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	cssHeight: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	leftBorderThickness: { name: "borderLeftWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	rightBorderThickness: { name: "borderRightWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	topBorderThickness: { name: "borderTopWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	bottomBorderThickness: { name: "borderBottomWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	leftPaddingThickness: { name: "paddingLeft", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	rightPaddingThickness: { name: "paddingRight", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	topPaddingThickness: { name: "paddingTop", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	bottomPaddingThickness: { name: "paddingBottom", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	borderColor: { value: Color.Black, transformation: { name: "color" } },
 	backgroundColor: { value: Color.Transparent, transformation: { name: "color" } },
-	visibility: { value: "visible" },
+	display: { value: "block" },
 	zIndex: { value: 0 }
 });
 
@@ -1650,6 +1839,45 @@ View.setSlots({
 		this.element().id = this.elementId();
 		this.styleSlots().forEach(function(ss){
 			self.perform("set" + ss.name().asCapitalized(), self.perform(ss.name()));
+		});
+	},
+	
+	setBorderThickness: function(t)
+	{
+		if (t > 0)
+		{
+			this.element().style.borderStyle = "solid";
+		}
+		
+		return this.performSets({
+			leftBorderThickness: t,
+			rightBorderThickness: t,
+			topBorderThickness: t,
+			bottomBorderThickness: t
+		});
+	},
+	
+	setPaddingThickness: function(t)
+	{
+		return this.performSets({
+			verticalPaddingThickness: t,
+			horizontalPaddingThickness: t
+		});
+	},
+	
+	setVerticalPaddingThickness: function(t)
+	{
+		return this.performSets({
+			topPaddingThickness: t/2,
+			bottomPaddingThickness: t/2
+		})
+	},
+	
+	setHorizontalPaddingThickness: function(t)
+	{
+		return this.performSets({
+			leftPaddingThickness: t/2,
+			rightPaddingThickness: t/2
 		});
 	},
 	
@@ -1721,13 +1949,13 @@ View.setSlots({
 	
 	width: function()
 	{
-		return this.cssWidth();
+		return this.cssWidth() + this.leftBorderThickness() + this.rightBorderThickness() + this.leftPaddingThickness() + this.rightPaddingThickness();
 	},
 	
 	setWidth: function(w)
 	{
 		var lastWidth = this.width();
-		this.setCssWidth(w);
+		this.setCssWidth(w - this.leftBorderThickness() - this.rightBorderThickness() - this.leftPaddingThickness() - this.rightPaddingThickness());
 		this.subviews().forEachPerform("autoResizeWidth", lastWidth);
 		
 		return this;
@@ -1735,32 +1963,53 @@ View.setSlots({
 	
 	height: function()
 	{
-		return this.cssHeight();
+		return this.cssHeight() + this.topBorderThickness() + this.bottomBorderThickness() + this.topPaddingThickness() + this.bottomPaddingThickness();
 	},
 	
 	setHeight: function(h)
 	{
 		var lastHeight = this.height();
-		this.setCssHeight(h);
+		this.setCssHeight(h - this.topBorderThickness() - this.bottomBorderThickness() - this.topPaddingThickness() - this.bottomPaddingThickness());
 		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
-		
+		if  (lastHeight != h)
+		{
+			this.delegatePerform("heightChanged");
+		}
 		return this;
+	},
+	
+	size: function()
+	{
+		return Point.withXY(this.width(), this.height());
+	},
+	
+	setSize: function(size)
+	{
+		return this.performSets({
+			width: size.x(),
+			height: size.y()
+		});
 	},
 	
 	isLandscape: function()
 	{
-		return this.width() > this.height();
+		return this.size().isLandscape();
+	},
+	
+	aspectRatio: function()
+	{
+		return this.size().aspectRatio();
 	},
 	
 	setHidden: function(hidden)
 	{
-		this.setVisibility(hidden ? "hidden" : "visible");
-		this.subviews().forEachPerform("setVisibility", this.visibility());
+		this._hidden = hidden;
+		this.setDisplay(hidden ? "none" : "block");
 	},
 	
 	hidden: function()
 	{
-		return this.visibility() == "hidden";
+		return this.display() == "none";
 	},
 	
 	show: function()
@@ -1875,6 +2124,14 @@ View.setSlots({
 		this.element().appendChild(subview.element());
 		
 		subview.conditionallyPerform("superviewChanged");
+		
+		return this;
+	},
+	
+	addToView: function(v)
+	{
+		v.addSubview(this);
+		return this;
 	},
 	
 	addSubviews: function()
@@ -1928,6 +2185,11 @@ View.setSlots({
 		this.setY(view.bottomEdge() - this.height() - 1);
 	},
 	
+	alignLeftTo: function(view)
+	{
+		this.setX(view.x());
+	},
+	
 	alignRightTo: function(view)
 	{
 		this.setX(view.rightEdge() - this.width() - 1);
@@ -1940,7 +2202,7 @@ View.setSlots({
 	
 	centerYOver: function(view)
 	{
-		this.setY(view.y() + (view.height() - this.height())/2);
+		return this.setY(view.y() + (view.height() - this.height())/2);
 	},
 	
 	centerOver: function(view)
@@ -1976,9 +2238,32 @@ View.setSlots({
 	
 	moveToBottom: function(margin)
 	{
-		margin = margin || 0;
-		
-		this.setY(this.superview().height() - this.height() - margin);
+		if (this.superview())
+		{
+			margin = margin || 0;
+
+			this.setY(this.superview().height() - this.height() - margin);
+		}
+	},
+	
+	moveToRight: function(margin)
+	{
+		if (this.superview())
+		{
+			margin = margin || 0;
+
+			this.setX(this.superview().width() - this.width() - margin);
+		}
+	},
+	
+	moveLeft: function(x)
+	{
+		return this.setX(this.x() - x);
+	},
+	
+	moveRight: function(x)
+	{
+		return this.setX(this.x() + x);
 	},
 	
 	moveDown: function(y)
@@ -1993,7 +2278,7 @@ View.setSlots({
 	
 	autoResizeWidth: function(lastSuperWidth)
 	{
-		if (!this.autoResizes())
+		if (!this.autoResizes() || !this.superview())
 		{
 			return;
 		}
@@ -2036,7 +2321,7 @@ View.setSlots({
 	
 	autoResizeHeight: function(lastSuperHeight)
 	{
-		if (!this.autoResizes())
+		if (!this.autoResizes() || !this.superview())
 		{
 			return;
 		}
@@ -2087,6 +2372,7 @@ View.setSlots({
 	{
 		this.resizeCenteredHorizontally();
 		this.resizeCenteredVertically();
+		return this;
 	},
 	
 	resizeCenteredHorizontally: function()
@@ -2110,17 +2396,9 @@ View.setSlots({
 	scaleToFitSuperview: function()
 	{
 		var superview = this.superview();
-		var aspectRatio = this.width() / this.height();
-
-		if(aspectRatio > superview.width()/superview.height())
+		if (superview)
 		{
-			this.setWidth(superview.width());
-			this.setHeight(superview.width() / aspectRatio);
-		}
-		else
-		{
-			this.setWidth(superview.height() * aspectRatio);
-			this.setHeight(superview.height());
+			this.setSize(this.size().scaleToFitPoint(superview.size()));
 		}
 	},
 	
@@ -2128,6 +2406,7 @@ View.setSlots({
 	{
 		var e = this.element().cloneNode(true);
 		var s = e.style;
+		s.display = "block";
 		s.position = "fixed";
 		s.width = "";
 		s.height = "";
@@ -2141,8 +2420,9 @@ View.setSlots({
 	{
 		var e = this.sizingElement();
 		var s = e.style;
-		this.setWidth(e.offsetWidth);
+		this.setWidth(e.offsetWidth + (this.width() - this.cssWidth()));
 		document.body.removeChild(e);
+		return this;
 	},
 	
 	sizeHeightToFit: function()
@@ -2150,19 +2430,24 @@ View.setSlots({
 		var e = this.sizingElement();
 		var s = e.style;
 		s.width = this.width() + "px";
-		this.setHeight(e.offsetHeight);
+		this.setHeight(e.offsetHeight + (this.height() - this.cssHeight()));
 		document.body.removeChild(e);
+		return this;
 	},
 	
 	sizeToFit: function()
 	{
 		this.sizeWidthToFit();
 		this.sizeHeightToFit();
+		return this;
 	},
 	
 	moveToBack: function()
 	{
-		this.setZIndex(this.superview().subviews().mapPerform("zIndex").min() - 1);
+		if (this.superview())
+		{
+			this.setZIndex(this.superview().subviews().mapPerform("zIndex").min() - 1);
+		}
 	},
 	
 	//animations
@@ -2178,6 +2463,7 @@ View.setSlots({
 			self.element().style.opacity = 1 - (elapsed/duration);
 			if (elapsed >= duration)
 			{
+				self.delegatePerform("fadedOut");
 				clearInterval(interval);
 				self.hide();
 				self.element().style.opacity = initialOpacity;
@@ -2203,7 +2489,14 @@ Window = View.clone().newSlots({
 		
 		window.onresize = function()
 		{
+			//alert("window.onresize");
 			Window.autoResize();
+		}
+		
+		var self = this;
+		window.onmessage = function(e)
+		{
+			self.delegatePerform("messagedFrom", e.data, e.origin);
 		}
 		
 		/* Doesn't work for some reason.  Add it to html for now
@@ -2280,9 +2573,37 @@ Label = View.clone().newSlots({
 	{
 		this._text = text;
 		this.element().innerText = text;
+		
+		return this;
 	}
 });
 
+/*
+leftBorderThickness: { name: "borderLeftWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+rightBorderThickness: { name: "borderRightWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+topBorderThickness: { name: "borderTopWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+bottomBorderThickness: { name: "borderBottomWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+leftPaddingThickness: { name: "paddingLeft", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+rightPaddingThickness: { name: "paddingRight", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+topPaddingThickness: { name: "paddingTop", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+bottomPaddingThickness: { name: "paddingBottom", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+borderColor: { value: Color.Black, transformation: { name: "color" } },
+*/
+
+NativeControl = View.clone().newSlots({
+	type: "NativeControl"
+}).setSlots({
+	initElement: function()
+	{
+		View.initElement.call(this);
+		
+		var e = this.element();
+		e.style.border = "";
+		e.style.margin = "";
+		e.style.padding = "";
+	}
+});
 TextField = Label.clone().newSlots({
 	type: "TextField",
 	elementName: "input",
@@ -2292,12 +2613,11 @@ TextField = Label.clone().newSlots({
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		NativeControl.initElement.call(this); //hack since TextField clones Label
 		
 		var e = this.element();
 		
-		e.style.margin = "";
-		e.style.padding = "";
+		e.type = "text";
 		
 		var self = this;
 		e.onkeydown = function(evt)
@@ -2355,35 +2675,48 @@ TextField = Label.clone().newSlots({
 	sizingElement: function()
 	{
 		var e = document.createElement("div");
-		//e.style = window.getComputedStyle(this.element());
-		var myStyle = window.getComputedStyle(this.element());
+
+		var clonedElement = this.element().cloneNode(true);
+		document.body.appendChild(clonedElement);
+		var myStyle = window.getComputedStyle(clonedElement);
 		for (var i = myStyle.length - 1; i > -1; i --)
 		{
 		    var name = myStyle[i];
 		    e.style.setProperty(name, myStyle.getPropertyValue(name));
 		}
+		document.body.removeChild(clonedElement);
 
+		e.style.display = "block";
 		e.style.position = "fixed";
 		e.style.width = "";
 		e.style.height = "";
 		e.style.top = screen.height + "px";
 		if (this.text() == "")
 		{
-			e.innerText = this.placeholderText();
+			e.innerText = this.placeholderText() || " ";
 		}
 		else
 		{
-			e.innerText = this.text()
+			e.innerText = this.text();
 		}
 		document.body.appendChild(e);
 		return e;
 	},
 	
-	sizeWidthToFit: function()
+	width: function()
 	{
-		View.sizeWidthToFit.call(this);
-		this.setWidth(this.width() + 2);
-		return this;
+		var style = window.getComputedStyle(this.element());
+		return this.cssWidth() +
+			parseFloat(style.getPropertyValue("padding-left") || 0) +
+			parseFloat(style.getPropertyValue("padding-right") || 0) +
+			parseFloat(style.getPropertyValue("border-left-width") || 0) +
+			parseFloat(style.getPropertyValue("border-right-width") || 0) + 2;
+	},
+	
+	height: function()
+	{
+		var style = window.getComputedStyle(this.element());
+		return this.cssHeight() + parseFloat(style.getPropertyValue("padding-top") || 0) + parseFloat(style.getPropertyValue("padding-bottom") || 0) + parseFloat(style.getPropertyValue("border-top-width") || 0) + parseFloat(style.getPropertyValue("border-bottom-width") || 0);
 	},
 	
 	checkChanged: function()
@@ -2457,13 +2790,13 @@ TextField = Label.clone().newSlots({
 	}
 });
 
-TextArea = Label.clone().newSlots({
+TextArea = NativeControl.clone().newSlots({
 	type: "TextArea",
 	elementName: "textarea"
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		NativeControl.initElement.call(this);
 		
 		var e = this.element();
 		
@@ -2527,6 +2860,18 @@ Button = Label.clone().newSlots({
 		e.style.cursor = "pointer";
 	},
 	
+	disable: function()
+	{
+		this.setColor(this.color().setAlpha(.5));
+		this.setMessagesDelegate(false);
+	},
+	
+	enable: function()
+	{
+		this.setColor(this.color().setAlpha(1.0));
+		this.setMessagesDelegate(true);
+	},
+	
 	simulateClick: function()
 	{
 		var clickEvent = document.createEvent("MouseEvents");
@@ -2535,14 +2880,14 @@ Button = Label.clone().newSlots({
 	}
 });
 
-CheckBox = View.clone().newSlots({
+CheckBox = NativeControl.clone().newSlots({
 	type: "CheckBox",
 	elementName: "input",
 	checked: false
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		NativeControl.init.call(this);
 		this.sizeToFit();
 	},
 	
@@ -2594,13 +2939,13 @@ CheckBox = View.clone().newSlots({
 	}
 });
 
-DropDown = View.clone().newSlots({
+DropDown = NativeControl.clone().newSlots({
 	type: "DropDown",
 	elementName: "select",
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		NativeControl.initElement.call(this);
 		
 		var self = this;
 		
@@ -2668,7 +3013,10 @@ ScrollView = View.clone().newSlots({
 	
 	setContentView: function(contentView)
 	{
-		this.removeSubview(this._contentView);
+		if (this._contentView)
+		{
+			this._contentView.removeFromSuperview();
+		}
 		this.addSubview(contentView);
 		this._contentView = contentView;
 		return this;
@@ -2917,6 +3265,7 @@ TableView = View.clone().newSlots({
 				}
 			}
 		}
+		return this;
 	}
 });
 
@@ -3327,13 +3676,18 @@ ImageView = View.clone().newSlots({
 BorderedButton = Button.clone().newSlots({
 	type: "BorderedButton",
 	borderImageUrl: null,
+	borderImage: null,
 	leftBorderWidth: 0,
 	rightBorderWidth: 0,
 	topBorderWidth: 0,
-	bottomBorderWidth: 0
+	bottomBorderWidth: 0,
 }).setSlots({
 	setBorderImageUrl: function(borderImageUrl)
 	{
+		var borderImage = new Image();
+		borderImage.src = borderImageUrl; //start loading it
+		this.setBorderImage(borderImage);
+		
 		this._borderImageUrl = borderImageUrl;
 		this.updateStyle();
 		return this;
@@ -3527,13 +3881,11 @@ VideoView = View.clone().newSlots({
 	
 	load: function()
 	{
-		//this.setInline(this.inline());
 		this.element().load();
 	},
 	
 	play: function()
 	{
-		//this.setInline(this.inline()); //hack - o.w. it doesn't always play inline on mobile :-/
 		this.element().play();
 	},
 	
@@ -3545,6 +3897,65 @@ VideoView = View.clone().newSlots({
 	mute: function()
 	{
 		this.element().muted = true;
+	}
+});
+AsyncQueue = Delegator.clone().newSlots({
+	workers: null,
+	timeout: null
+}).setSlots({
+	init: function()
+	{
+		Delegator.init.call(this);
+		this.setWorkers([]);
+	},
+	
+	addWorker: function(worker)
+	{
+		worker.performSets({
+			delegate: this,
+			delegatePrefix: "asyncWorker",
+		});
+		this.workers().append(worker);
+	},
+	
+	start: function()
+	{
+		if (this.timeout())
+		{
+			var self = this;
+			this._timeoutId = setTimeout(function(){
+				self.fail();
+			}, this.timeout());
+		}
+		this.workers().forEachPerform("asyncQueueStart");
+	},
+	
+	asyncWorkerCompleted: function(worker)
+	{
+		this.workers().remove(worker);
+		if (this.workers().isEmpty())
+		{
+			this.delegatePerform("succeeded");
+			this.complete();
+		}
+	},
+	
+	asyncWorkerFailed: function(worker)
+	{
+		this.fail();
+	},
+	
+	fail: function()
+	{
+		this.delegatePerform("failed");
+		this.complete();
+	},
+	
+	complete: function()
+	{
+		clearTimeout(this._timeoutId);
+		this.delegatePerform("completed");
+		this.setMessagesDelegate(false);
 	}
 });
 Editable = Delegator.clone().newSlots({
@@ -3576,7 +3987,7 @@ Editable = Delegator.clone().newSlots({
 					this["_" + description.name] = newValue;
 					if (this.watchesSlots())
 					{
-						this.conditionallyPerform("slotChanged", description.name, oldValue, newValue);
+						this.delegatePerform("slotChanged", description.name, oldValue, newValue);
 					}
 				}
 
@@ -3599,6 +4010,7 @@ Editable = Delegator.clone().newSlots({
 				delete control.type;
 				editableSlot.control().performSets(control);
 				editableSlot.setName(description.name);
+				editableSlot.setNormalizer(description.normalizer);
 				editableSlot.setObject(self);
 				if (description.label)
 				{
@@ -3630,6 +4042,7 @@ EditableSlot = Proto.clone().newSlots({
 	type: "EditableSlot",
 	object: null,
 	name: null,
+	normalizer: null,
 	label: null,
 	labelText: null,
 	control: null,
@@ -3659,9 +4072,20 @@ EditableSlot = Proto.clone().newSlots({
 		return this._control;
 	},
 	
-	updateValue: function(v)
+	updateValue: function()
 	{
-		this.object().perform("set" + this.name().asCapitalized(), this.control().value());
+		var v = this.control().value();
+		var normalizer = this.normalizer() || function(v){ return v };
+		try
+		{
+			v = normalizer(v);
+		}
+		catch (e)
+		{
+			console.log(e);
+		}
+		
+		this.object().perform("set" + this.name().asCapitalized(), v)
 	},
 	
 	value: function()

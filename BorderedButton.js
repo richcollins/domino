@@ -1,13 +1,18 @@
 BorderedButton = Button.clone().newSlots({
 	type: "BorderedButton",
 	borderImageUrl: null,
+	borderImage: null,
 	leftBorderWidth: 0,
 	rightBorderWidth: 0,
 	topBorderWidth: 0,
-	bottomBorderWidth: 0
+	bottomBorderWidth: 0,
 }).setSlots({
 	setBorderImageUrl: function(borderImageUrl)
 	{
+		var borderImage = new Image();
+		borderImage.src = borderImageUrl; //start loading it
+		this.setBorderImage(borderImage);
+		
 		this._borderImageUrl = borderImageUrl;
 		this.updateStyle();
 		return this;

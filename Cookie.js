@@ -23,7 +23,7 @@ Cookie = Proto.clone().newSlots({
 		return this.cookieMap()[name];
 	},
 	
-	delete: function()
+	remove: function()
 	{
 		return this.setExpirationDate(new Date(0)).save();
 	},
