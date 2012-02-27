@@ -7,6 +7,7 @@ Importer.importPaths([
 	"Array",
 	"Number",
 	"String",
+	"MD5",
 	"NodeWrapper",
 	"Cookie",
 	
@@ -36,6 +37,7 @@ Importer.importPaths([
 	"ImageButton",
 	"VideoView",
 	"AsyncQueue",
+	"ProgressIndicatorView",
 	
 	"Editable",
 	"EditableSlot",

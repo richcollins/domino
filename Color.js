@@ -39,4 +39,5 @@ Color.setSlots({
 	Red: Color.clone().setRed(1.0),
 	Green: Color.clone().setGreen(1.0),
 	DarkGreen: Color.clone().setGreen(100/255),
+	Yellow: Color.withRGB(1.0, 1.0, 0)
 });

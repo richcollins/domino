@@ -29,5 +29,10 @@ ScrollView = View.clone().newSlots({
 	scrollToBottom: function()
 	{
 		this.element().scrollTop = this.contentView().height() - this.height();
+	},
+	
+	scrollToTop: function()
+	{
+		this.element().scrollTop = 0;
 	}
 });

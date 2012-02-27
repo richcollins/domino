@@ -21,5 +21,18 @@ Importer = Proto.clone().setType("Importer").newSlots({
 			var script = '<script type="text/javascript" src="' + path + (this.addsTimestamp() ? ("?" + new Date().getTime()) : "") + '"><\/script>';
 			document.write(script);
 		}
+		return this;
+	},
+	
+	extendBasePath: function(pathComponent)
+	{
+		this.setBasePath(this.basePath() + "/" + pathComponent);
+		return this;
+	},
+	
+	useSiblingPath: function(pathComponent)
+	{
+		this.setBasePath(this.basePath().siblingPath(pathComponent));
+		return this;
 	}
 });

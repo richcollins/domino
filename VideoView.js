@@ -115,5 +115,10 @@ VideoView = View.clone().newSlots({
 	mute: function()
 	{
 		this.element().muted = true;
+	},
+	
+	scaling: function()
+	{
+		return this.width() / this.nativeWidth();
 	}
 });

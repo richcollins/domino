@@ -644,8 +644,13 @@ View.setSlots({
 		var superview = this.superview();
 		if (superview)
 		{
-			this.setSize(this.size().scaleToFitPoint(superview.size()));
+			this.scaleToFitSize(superview.size());
 		}
+	},
+	
+	scaleToFitSize: function(size)
+	{
+		this.setSize(this.size().scaleToFitPoint(size));
 	},
 	
 	sizingElement: function()

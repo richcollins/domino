@@ -67,9 +67,49 @@ Proto.setSlots(
 		var obj = new Proto_constructor;
 		obj._proto = this;
 		obj._uniqueId = ++ Proto.uniqueIdCounter;
+		obj._applySuperMap = {};
 		if(obj.init)
 			obj.init();
 		return obj;
+	},
+	
+	_applySuperMap: {},
+	
+	applySuper: function(messageName, args)
+	{
+		var applySuperMap = this._applySuperMap;
+		lookupProto = applySuperMap[messageName] || this;
+		
+		if (!lookupProto._proto)
+		{
+			return undefined;
+		}
+		
+		var proto = lookupProto._proto;
+		
+		var myFn = lookupProto[messageName];
+		while(proto && (myFn == proto[messageName]))
+		{
+			proto = proto._proto;
+		}
+		
+		var fn = proto[messageName];
+		if (proto && fn && typeof(fn) == "function")
+		{
+			applySuperMap[messageName] = proto;
+			try
+			{
+				return proto[messageName].apply(this, args); 
+			}
+			catch (e)
+			{
+				throw e;
+			}
+			finally
+			{
+				delete applySuperMap[messageName];
+			}
+		}
 	},
 
 	uniqueId: function()
@@ -326,42 +366,6 @@ Proto.setSlots(
 		
 		return o;
 	}
-	
-	/* figure this out later
-	superPerform: function(messageName)
-	{
-		if (!this._proto)
-		{
-			return undefined;
-		}
-		
-		var proto = this._proto;
-		
-		var myFn = this[messageName];
-		while(proto && (myFn == proto[messageName]))
-		{
-			proto = proto._proto;
-		}
-		
-		var fn = proto[messageName];
-		if (proto && fn && typeof(fn) == "function")
-		{
-			if (!window.logged)
-			{
-				logged = true;
-				console.log(this[messageName]);
-				console.log(proto[messageName]);
-			}
-			var args = Arguments_asArray(arguments);
-			args.removeFirst();
-			return proto[messageName].apply(this, args); 
-		}
-		else
-		{
-			return undefined;
-		}
-	}
-	*/
 });
 
 Proto.newSlot("type", "Proto");

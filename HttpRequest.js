@@ -30,5 +30,19 @@ HttpRequest = Delegator.clone().newSlots({
 			}
 		}
 		xhr.send(this.body());
+	},
+	
+	retry: function()
+	{
+		this.setResponse(null);
+		this.xmlHttpRequest().onreadystatechange = null;
+		this.setXmlHttpRequest(new XMLHttpRequest());
+		this.start();
+	},
+	
+	cancel: function()
+	{
+		this.setDelegate(null);
+		this.xmlHttpRequest().onreadystatechange = null;
 	}
 });

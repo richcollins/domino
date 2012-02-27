@@ -3,7 +3,8 @@ VerticalListView = TitledView.clone().newSlots({
 	scrollView: null,
 	controlsView: null,
 	addButton: null,
-	defaultItemText: "New Item"
+	defaultItemText: "New Item",
+	allowsItemEditing: false
 }).setSlots({
 	init: function()
 	{
@@ -70,34 +71,42 @@ VerticalListView = TitledView.clone().newSlots({
 	
 	addButtonClicked: function()
 	{
-		var hMargin = VerticalListContentView.itemHMargin();
-		var vMargin = VerticalListContentView.itemVMargin();
-		
-		var textField = TextField.clone();
-		textField.setText(this.defaultItemText());
-		textField.setWidth(this.width() - 2*hMargin);
-		textField.sizeHeightToFit();
-		textField.setX(hMargin);
-		textField.setDelegate(this);
-		
-		var itemView = View.clone();
-		itemView.setWidth(this.width());
-		itemView.setHeight(textField.height() + vMargin);
-		
-		itemView.addSubview(textField);
-		textField.centerVertically();
-		
-		var sv = this.scrollView();
-		var cv = sv.contentView();
-		cv.addItem(itemView);
-		this.scrollView().scrollToBottom();
-		
-		textField.focus();
-		textField.selectAll();
-		
-		if (!this.shouldDockButton())
+		if (this.allowsItemEditing())
 		{
-			this.addButton().setHidden(true);
+			var hMargin = VerticalListContentView.itemHMargin();
+			var vMargin = VerticalListContentView.itemVMargin();
+
+			var textField = TextField.clone();
+			textField.setText(this.defaultItemText());
+			textField.setWidth(this.width() - 2*hMargin);
+			textField.sizeHeightToFit();
+			textField.setX(hMargin);
+			textField.setDelegate(this);
+
+			var itemView = View.clone();
+			itemView.setWidth(this.width());
+			itemView.setHeight(textField.height() + vMargin);
+
+			itemView.addSubview(textField);
+			textField.centerVertically();
+
+			var sv = this.scrollView();
+			var cv = sv.contentView();
+			cv.addItem(itemView);
+			this.scrollView().scrollToBottom();
+
+			textField.focus();
+			textField.selectAll();
+
+			if (!this.shouldDockButton())
+			{
+				this.addButton().setHidden(true);
+			}
+		}
+		else
+		{
+			this.vlcv().addItemWithText(this.defaultItemText());
+			this.selectLastItem();
 		}
 	},
 	
@@ -182,6 +191,13 @@ VerticalListView = TitledView.clone().newSlots({
 		}
 	},
 	
+	selectLastItem: function()
+	{
+		var vlcv = this.vlcv();
+		vlcv.selectItem(vlcv.items().last());
+		this.scrollView().scrollToBottom();
+	},
+	
 	selectItemWithTitle: function(title)
 	{
 		var vlcv = this.scrollView().contentView();
@@ -201,5 +217,13 @@ VerticalListView = TitledView.clone().newSlots({
 	isEmpty: function()
 	{
 		return this.vlcv().items().length == 0;
+	},
+	
+	empty: function()
+	{
+		this.vlcv().removeAllSubviews();
+		this.vlcv().setWidth(0);
+		this.vlcv().setHeight(0);
+		this.scrollView().scrollToTop();
 	}
 });

@@ -182,6 +182,11 @@ String.prototype.setSlotsIfAbsent(
 		c.removeLast();
 		return c.join("/");
 	},
+	
+	siblingPath: function(pathComponent)
+	{
+		return this.sansLastPathComponent() + "/" + pathComponent;
+	},
 
 	lastPathComponent: function()
 	{
@@ -217,6 +222,11 @@ String.prototype.setSlotsIfAbsent(
 		}
 		words.append(capitalized.slice(start, i));
 		return words.join(" ");
+	},
+	
+	titleized: function()
+	{
+		return this.split(/\s+/).map("asCapitalized").join(" ");
 	},
 	
 	base64Encoded: function()
