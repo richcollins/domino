@@ -2918,7 +2918,8 @@ dm.Window = dm.View.clone().newSlots({
 	type: "dm.Window",
 	lastResizeWidth: null,
 	lastResizeHeight: null,
-	inited: false
+	inited: false,
+	containerElement: null
 }).setSlots({
 	init: function()
 	{
@@ -2968,7 +2969,11 @@ dm.Window = dm.View.clone().newSlots({
 	
 	createElement: function()
 	{
-		if (!this.element())
+		if (this.containerElement())
+		{
+			this.setElement(this.containerElement());
+		}
+		else
 		{
 			this.setElement(document.body);
 		}
