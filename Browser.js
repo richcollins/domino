@@ -1,4 +1,4 @@
-Browser = Proto.clone().setSlots(
+dm.Browser = dm.Proto.clone().setSlots(
 {
 	userAgent: function()
 	{

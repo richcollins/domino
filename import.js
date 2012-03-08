@@ -1,5 +1,4 @@
-Importer.importPaths([
-	"Object",
+dm.Importer.importPaths([
 	"Proto",
 	"Browser",
 	"Extensions",
@@ -36,7 +35,6 @@ Importer.importPaths([
 	"BorderedButton",
 	"ImageButton",
 	"VideoView",
-	"AsyncQueue",
 	"ProgressIndicatorView",
 	
 	"Editable",

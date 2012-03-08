@@ -1,3 +1,63 @@
+dm = {};
+
+dm.Object_clone = function(obj)
+{
+	dm.Proto_constructor.prototype = obj;
+	return new dm.Proto_constructor;
+}
+
+dm.Object_shallowCopy = function(obj)
+{
+	var newObj = {};
+	for (var name in obj)
+	{
+		if (obj.hasOwnProperty(name))
+		{
+			newObj[name] = obj[name];
+		}
+	}
+	
+	return newObj;
+}
+
+dm.Object_eachSlot = function(obj, fn)
+{
+	for (var name in obj)
+	{
+		if (obj.hasOwnProperty(name))
+		{
+			fn(name, obj[name]);
+		}
+	}
+}
+
+dm.Object_withLowerCaseKeys = function(obj)
+{
+	var lowered = {};
+	
+	dm.Object_eachSlot(obj, function(k, v){
+		lowered[k.toLowerCase()] = v;
+	})
+	
+	return lowered;
+}
+
+dm.Arguments_asArray = function(args)
+{
+	return Array.prototype.slice.call(args);
+}
+
+dm.Object_lookupPath = function(obj, path)
+{
+	path = path.split(".");
+	var pc;
+	while (obj && (pc = path.shift()))
+	{
+		obj = obj[pc];
+	}
+	return obj;
+}
+
 if (!Array.prototype.forEach)
 {
 	Array.prototype.forEach = function(fun /*, thisp*/)
@@ -22,18 +82,18 @@ String.prototype.asCapitalized = function()
 	});
 };
 
-Proto = new Object;
+dm.Proto = new Object;
 
-Proto.setSlot = function(name, value)
+dm.Proto.setSlot = function(name, value)
 {
 	this[name] = value;
 
 	return this;
 };
 
-Proto.uniqueIdCounter = 0;
+dm.Proto.uniqueIdCounter = 0;
 
-Proto.setSlots = function(slots)
+dm.Proto.setSlots = function(slots)
 {
 	for(name in slots)
 	{
@@ -54,19 +114,19 @@ Proto.setSlots = function(slots)
 	return this;
 };
 
-Proto_constructor = new Function;
+dm.Proto_constructor = new Function;
 
-Proto.setSlots(
+dm.Proto.setSlots(
 {
 	constructor: new Function,
 
 	clone: function()
 	{
-		Proto_constructor.prototype = this;
+		dm.Proto_constructor.prototype = this;
 	
-		var obj = new Proto_constructor;
+		var obj = new dm.Proto_constructor;
 		obj._proto = this;
-		obj._uniqueId = ++ Proto.uniqueIdCounter;
+		obj._uniqueId = ++ dm.Proto.uniqueIdCounter;
 		obj._applySuperMap = {};
 		if(obj.init)
 			obj.init();
@@ -368,6 +428,6 @@ Proto.setSlots(
 	}
 });
 
-Proto.newSlot("type", "Proto");
-Proto.newSlot("sender", null);
-Proto.removeSlot = Proto.removeSlots;
+dm.Proto.newSlot("type", "dm.Proto");
+dm.Proto.newSlot("sender", null);
+dm.Proto.removeSlot = dm.Proto.removeSlots;

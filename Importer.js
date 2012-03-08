@@ -1,4 +1,4 @@
-Importer = Proto.clone().setType("Importer").newSlots({
+dm.Importer = dm.Proto.clone().setType("dm.Importer").newSlots({
 	basePath: null,
 	addsTimestamp: false
 }).setSlots(

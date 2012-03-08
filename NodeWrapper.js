@@ -1,5 +1,5 @@
-NodeWrapper = Proto.clone().newSlots({
-	type: "NodeWrapper",
+dm.NodeWrapper = dm.Proto.clone().newSlots({
+	type: "dm.NodeWrapper",
 	node: null
 }).setSlots({
 	allAt: function(name)
@@ -12,7 +12,7 @@ NodeWrapper = Proto.clone().newSlots({
 			var n = node.childNodes[i];
 			if (n.nodeName == name)
 			{
-				nodes.push(NodeWrapper.clone().setNode(n));
+				nodes.push(dm.NodeWrapper.clone().setNode(n));
 			}
 		}
 		

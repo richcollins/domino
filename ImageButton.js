@@ -1,16 +1,16 @@
-ImageButton = Button.clone().newSlots({
-	type: "ImageButton",
+dm.ImageButton = dm.Button.clone().newSlots({
+	type: "dm.ImageButton",
 	imageUrl: null,
 	imageView: null
 }).setSlots({
 	init: function()
 	{
-		Button.init.call(this);
+		dm.Button.init.call(this);
 		
 		this.setWidth(3);
 		this.setHeight(3);
 		
-		var iv = ImageView.clone();
+		var iv = dm.ImageView.clone();
 		iv.setWidth(3);
 		iv.setHeight(3);
 		iv.resizeToFill();

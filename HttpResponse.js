@@ -1,5 +1,5 @@
-HttpResponse = Proto.clone().newSlots({
-	type: "HttpResponse",
+dm.HttpResponse = dm.Proto.clone().newSlots({
+	type: "dm.HttpResponse",
 	body: null,
 	statusCode: null
 }).setSlots({

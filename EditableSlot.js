@@ -1,5 +1,5 @@
-EditableSlot = Proto.clone().newSlots({
-	type: "EditableSlot",
+dm.EditableSlot = dm.Proto.clone().newSlots({
+	type: "dm.EditableSlot",
 	object: null,
 	name: null,
 	normalizer: null,
@@ -13,7 +13,7 @@ EditableSlot = Proto.clone().newSlots({
 	{
 		if (!this._label)
 		{
-			var l = Label.clone();
+			var l = dm.Label.clone();
 			l.setText(this.name().humanized());
 			l.sizeToFit();
 			this._label = l;

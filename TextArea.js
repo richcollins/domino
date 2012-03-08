@@ -1,10 +1,10 @@
-TextArea = NativeControl.clone().newSlots({
-	type: "TextArea",
+dm.TextArea = dm.NativeControl.clone().newSlots({
+	type: "dm.TextArea",
 	elementName: "textarea"
 }).setSlots({
 	initElement: function()
 	{
-		NativeControl.initElement.call(this);
+		dm.NativeControl.initElement.call(this);
 		
 		var e = this.element();
 		

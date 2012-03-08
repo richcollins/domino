@@ -1,17 +1,17 @@
-CheckBox = NativeControl.clone().newSlots({
-	type: "CheckBox",
+dm.CheckBox = dm.NativeControl.clone().newSlots({
+	type: "dm.CheckBox",
 	elementName: "input",
 	checked: false
 }).setSlots({
 	init: function()
 	{
-		NativeControl.init.call(this);
+		dm.NativeControl.init.call(this);
 		this.sizeToFit();
 	},
 	
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		var self = this;
 		
@@ -41,7 +41,7 @@ CheckBox = NativeControl.clone().newSlots({
 	
 	sizeToFit: function()
 	{
-		View.sizeToFit.call(this);
+		dm.View.sizeToFit.call(this);
 		this.setWidth(this.width() + 2);
 		this.setHeight(this.height() + 2);
 	},

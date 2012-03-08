@@ -1,22 +1,21 @@
-Window = View.clone().newSlots({
-	type: "Window",
+dm.Window = dm.View.clone().newSlots({
+	type: "dm.Window",
 	lastResizeWidth: null,
 	lastResizeHeight: null,
 	inited: false
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		dm.View.init.call(this);
 		
-		document.body.innerHTML = "";
+		this.element().innerHTML = "";
 		
 		this.setLastResizeWidth(this.width());
 		this.setLastResizeHeight(this.height());
 		
 		window.onresize = function()
 		{
-			//alert("window.onresize");
-			Window.autoResize();
+			dm.Window.autoResize();
 		}
 		
 		var self = this;
@@ -39,34 +38,53 @@ Window = View.clone().newSlots({
 	
 	startResizeInterval: function() //window.onresize doesn't always work on mobile webkit.
 	{
-		var self = this;
-		this._resizeTimer = setInterval(function(){
-			if (self.width() != self.lastResizeWidth() || self.height() != self.lastResizeHeight())
-			{
-				self.autoResize();
-			}
-		}, 200);
+		if (!this._resizeTimer)
+		{
+			var self = this;
+			this._resizeTimer = setInterval(function(){
+				if (self.width() != self.lastResizeWidth() || self.height() != self.lastResizeHeight())
+				{
+					self.autoResize();
+				}
+			}, 200);
+		}
 	},
 	
 	createElement: function()
 	{
-		this.setElement(document.body);
+		if (!this.element())
+		{
+			this.setElement(document.body);
+		}
 	},
 
 	initElement: function()
 	{
+		//this.element().style.zIndex = 
 	},
 	
 	width: function()
 	{
-		return window.innerWidth; //document.body isn't reliable on mobile
-		//return this.element().clientWidth;
+		if (this.element() == document.body)
+		{
+			return window.innerWidth; //document.body isn't reliable on mobile
+		}
+		else
+		{
+			return this.element().clientWidth;
+		}
 	},
 	
 	height: function()
 	{
-		return window.innerHeight; //document.body isn't reliable on mobile
-		//return this.element().clientHeight;
+		if (this.element() == document.body)
+		{
+			return window.innerHeight; //document.body isn't reliable on mobile
+		}
+		else
+		{
+			return this.element().clientHeight;
+		}
 	},
 	
 	autoResize: function()
@@ -74,9 +92,12 @@ Window = View.clone().newSlots({
 		this.subviews().forEachPerform("autoResize", this.lastResizeWidth(), this.lastResizeHeight());
 		this.setLastResizeWidth(this.width());
 		this.setLastResizeHeight(this.height());
+	},
+	
+	windowLoaded: function()
+	{
+		dm.Window.init();
 	}
 });
 
-window.addEventListener("load", function(){
-	Window.init();
-});
+window.addEventListener("load", dm.Window.windowLoaded);

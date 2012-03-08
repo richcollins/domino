@@ -1,6 +1,6 @@
-EditableTextFieldSlot = EditableSlot.clone().newSlots({
-	type: "EditableTextFieldSlot",
-	controlProto: TextField
+dm.EditableTextFieldSlot = dm.EditableSlot.clone().newSlots({
+	type: "dm.EditableTextFieldSlot",
+	controlProto: dm.TextField
 }).setSlots({
 	textFieldChanged: function(tf)
 	{

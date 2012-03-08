@@ -1,13 +1,13 @@
-TextField = Label.clone().newSlots({
-	type: "TextField",
+dm.TextField = dm.Label.clone().newSlots({
+	type: "dm.TextField",
 	elementName: "input",
 	placeholderText: "Enter Text",
-	placeholderTextColor: Color.Gray,
+	placeholderTextColor: dm.Color.Gray,
 	growsToFit: true
 }).setSlots({
 	initElement: function()
 	{
-		NativeControl.initElement.call(this); //hack since TextField clones Label
+		dm.NativeControl.initElement.call(this); //hack since TextField clones Label
 		
 		var e = this.element();
 		

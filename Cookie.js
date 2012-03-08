@@ -1,5 +1,5 @@
-Cookie = Proto.clone().newSlots({
-	type: "Cookie",
+dm.Cookie = dm.Proto.clone().newSlots({
+	type: "dm.Cookie",
 	name: null,
 	value: null,
 	expirationDate: null,
@@ -12,7 +12,7 @@ Cookie = Proto.clone().newSlots({
 		document.cookie.split("; ").forEach(function(pair){
 			var name = pair.before("=");
 			var value = pair.after("=");
-			map[name] = Cookie.clone().setName(name).setValue(value);
+			map[name] = dm.Cookie.clone().setName(name).setValue(value);
 		});
 		
 		return map;

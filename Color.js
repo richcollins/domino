@@ -1,4 +1,4 @@
-Color = Proto.clone().newSlots({
+dm.Color = dm.Proto.clone().newSlots({
 	red: 0,
 	green: 0,
 	blue: 0,
@@ -21,7 +21,7 @@ Color = Proto.clone().newSlots({
 	
 	withHex: function(hex)
 	{
-		return Color.withRGB(
+		return dm.Color.withRGB(
 			parseInt(hex.substring(0, 2), 16)/255,
 			parseInt(hex.substring(2, 4), 16)/255,
 			parseInt(hex.substring(4, 6), 16)/255
@@ -29,15 +29,15 @@ Color = Proto.clone().newSlots({
 	}
 });
 
-Color.setSlots({
-	Transparent: Color.clone().setAlpha(0),
-	White: Color.clone().setRed(1).setGreen(1).setBlue(1),
-	LightGray: Color.clone().setRed(212/255).setGreen(212/255).setBlue(212/255),
-	Gray: Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
-	DimGray: Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
-	Black: Color.clone(),
-	Red: Color.clone().setRed(1.0),
-	Green: Color.clone().setGreen(1.0),
-	DarkGreen: Color.clone().setGreen(100/255),
-	Yellow: Color.withRGB(1.0, 1.0, 0)
+dm.Color.setSlots({
+	Transparent: dm.Color.clone().setAlpha(0),
+	White: dm.Color.clone().setRed(1).setGreen(1).setBlue(1),
+	LightGray: dm.Color.clone().setRed(212/255).setGreen(212/255).setBlue(212/255),
+	Gray: dm.Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
+	DimGray: dm.Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
+	Black: dm.Color.clone(),
+	Red: dm.Color.clone().setRed(1.0),
+	Green: dm.Color.clone().setGreen(1.0),
+	DarkGreen: dm.Color.clone().setGreen(100/255),
+	Yellow: dm.Color.withRGB(1.0, 1.0, 0)
 });

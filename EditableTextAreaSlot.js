@@ -1,6 +1,6 @@
-EditableTextAreaSlot = EditableSlot.clone().newSlots({
-	type: "EditableTextAreaSlot",
-	controlProto: TextArea
+dm.EditableTextAreaSlot = dm.EditableSlot.clone().newSlots({
+	type: "dm.EditableTextAreaSlot",
+	controlProto: dm.TextArea
 }).setSlots({
 	textAreaEditingEnded: function(tf)
 	{

@@ -73,7 +73,6 @@ class Importer
   end
   
   def concat
-    puts out_path
     if runs_commands
       open(out_path, "w") do |f|
         f.write(Importer.shared.javascript_chunks.join("\n"))
@@ -95,6 +94,14 @@ class Importer
     end
     concat
     compress
+  end
+  
+  def dm
+    self
+  end
+  
+  def Importer
+    self
   end
 end
 

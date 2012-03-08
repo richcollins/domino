@@ -1,5 +1,5 @@
-VideoView = View.clone().newSlots({
-	type: "VideoView",
+dm.VideoView = dm.View.clone().newSlots({
+	type: "dm.VideoView",
 	url: null,
 	nativeWidth: null,
 	nativeHeight: null,
@@ -22,7 +22,7 @@ VideoView = View.clone().newSlots({
 	
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		var self = this;
 		var e = this.element();

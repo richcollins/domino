@@ -1,16 +1,16 @@
-ScrollView = View.clone().newSlots({
-	type: "ScrollView",
+dm.ScrollView = dm.View.clone().newSlots({
+	type: "dm.ScrollView",
 	contentView: null
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
-		this.setContentView(View.clone());
+		dm.View.init.call(this);
+		this.setContentView(dm.View.clone());
 	},
 	
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		this.element().style.overflow = "auto";
 	},

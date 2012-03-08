@@ -1,6 +1,6 @@
-EditableDropDownSlot = EditableSlot.clone().newSlots({
-	type: "EditableDropDownSlot",
-	controlProto: DropDown
+dm.EditableDropDownSlot = dm.EditableSlot.clone().newSlots({
+	type: "dm.EditableDropDownSlot",
+	controlProto: dm.DropDown
 }).setSlots({
 	dropDownChanged: function(dd)
 	{

@@ -1,5 +1,5 @@
-ImageView = View.clone().newSlots({
-	type: "ImageView",
+dm.ImageView = dm.View.clone().newSlots({
+	type: "dm.ImageView",
 	url: null,
 	elementName: "img"
 }).setSlots({

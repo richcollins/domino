@@ -1,5 +1,5 @@
-VerticalListView = TitledView.clone().newSlots({
-	type: "VerticalListView",
+dm.VerticalListView = dm.TitledView.clone().newSlots({
+	type: "dm.VerticalListView",
 	scrollView: null,
 	controlsView: null,
 	addButton: null,
@@ -8,14 +8,14 @@ VerticalListView = TitledView.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
-		TitledView.init.call(this);
+		dm.TitledView.init.call(this);
 		
-		if (Window.inited())
+		if (dm.Window.inited())
 		{
-			var addButton = Button.clone();
+			var addButton = dm.Button.clone();
 			addButton.setFontWeight("bold");
 			addButton.setText("+");
-			addButton.setColor(Color.DimGray);
+			addButton.setColor(dm.Color.DimGray);
 			addButton.sizeToFit();
 			addButton.setX(addButton.fontSize());
 			addButton.setY(addButton.fontSize()/2);
@@ -24,13 +24,13 @@ VerticalListView = TitledView.clone().newSlots({
 		
 			var selfWidth = Math.max(addButton.width() + addButton.fontSize(), this.titleBar().width());
 		
-			var contentView = VerticalListContentView.clone();
+			var contentView = dm.VerticalListContentView.clone();
 			contentView.setWidth(selfWidth);
 			contentView.setResizesWidth(true);
 			contentView.setDelegate(this);
 			contentView.setDelegatePrefix("vlcv");
 		
-			var scrollView = ScrollView.clone();
+			var scrollView = dm.ScrollView.clone();
 			scrollView.setWidth(selfWidth);
 			scrollView.setHeight(1);
 			scrollView.setResizesHeight(true);
@@ -38,8 +38,8 @@ VerticalListView = TitledView.clone().newSlots({
 			scrollView.setContentView(contentView);
 			this.setScrollView(scrollView);
 		
-			var controlsView = View.clone();
-			controlsView.setBackgroundColor(Color.LightGray);
+			var controlsView = dm.View.clone();
+			controlsView.setBackgroundColor(dm.Color.LightGray);
 			controlsView.setY(scrollView.height());
 			controlsView.setWidth(selfWidth);
 			controlsView.setHeight(addButton.height() + 0.5*addButton.fontSize());
@@ -48,8 +48,8 @@ VerticalListView = TitledView.clone().newSlots({
 		
 			this.setControlsView(controlsView);
 		
-			var controlsDivider = View.clone();
-			controlsDivider.setBackgroundColor(Color.Gray);
+			var controlsDivider = dm.View.clone();
+			controlsDivider.setBackgroundColor(dm.Color.Gray);
 			controlsDivider.setY(controlsView.y() - 1);
 			controlsDivider.setWidth(selfWidth);
 			controlsDivider.setHeight(1);
@@ -73,17 +73,17 @@ VerticalListView = TitledView.clone().newSlots({
 	{
 		if (this.allowsItemEditing())
 		{
-			var hMargin = VerticalListContentView.itemHMargin();
-			var vMargin = VerticalListContentView.itemVMargin();
+			var hMargin = dm.VerticalListContentView.itemHMargin();
+			var vMargin = dm.VerticalListContentView.itemVMargin();
 
-			var textField = TextField.clone();
+			var textField = dm.TextField.clone();
 			textField.setText(this.defaultItemText());
 			textField.setWidth(this.width() - 2*hMargin);
 			textField.sizeHeightToFit();
 			textField.setX(hMargin);
 			textField.setDelegate(this);
 
-			var itemView = View.clone();
+			var itemView = dm.View.clone();
 			itemView.setWidth(this.width());
 			itemView.setHeight(textField.height() + vMargin);
 
@@ -160,7 +160,7 @@ VerticalListView = TitledView.clone().newSlots({
 	
 	setHeight: function(h)
 	{
-		TitledView.setHeight.call(this, h);
+		dm.TitledView.setHeight.call(this, h);
 		if (this.scrollView())
 		{
 			this.updateButtons();

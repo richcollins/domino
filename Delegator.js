@@ -1,17 +1,17 @@
-Delegator = Proto.clone().newSlots({
-	type: "Delegator",
+dm.Delegator = dm.Proto.clone().newSlots({
+	type: "dm.Delegator",
 	delegate: null,
 	delegatePrefix: null,
 	messagesDelegate: true
 }).setSlots({
 	init: function()
 	{
-		this.setDelegatePrefix(this.type().asUncapitalized());
+		this.setDelegatePrefix(this.type().split(".").last().asUncapitalized());
 	},
 	
 	delegateWith: function(slots)
 	{
-		return this.setDelegate(Proto.clone().setSlots(slots));
+		return this.setDelegate(dm.Proto.clone().setSlots(slots));
 	},
 	
 	delegateMessageName: function(messageName)
@@ -31,7 +31,7 @@ Delegator = Proto.clone().newSlots({
 	{
 		if (this.messagesDelegate())
 		{
-			var args = Arguments_asArray(arguments).slice(1);
+			var args = dm.Arguments_asArray(arguments).slice(1);
 			args.unshift(this);
 
 			var d = this.delegate();

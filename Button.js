@@ -1,9 +1,9 @@
-Button = Label.clone().newSlots({
-	type: "Button"
+dm.Button = dm.Label.clone().newSlots({
+	type: "dm.Button"
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		this.setTextAlign("center");
 		

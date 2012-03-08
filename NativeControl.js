@@ -8,15 +8,15 @@ rightPaddingThickness: { name: "paddingRight", value: 0, transformation: { name:
 topPaddingThickness: { name: "paddingTop", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 bottomPaddingThickness: { name: "paddingBottom", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-borderColor: { value: Color.Black, transformation: { name: "color" } },
+borderColor: { value: dm.Color.Black, transformation: { name: "color" } },
 */
 
-NativeControl = View.clone().newSlots({
-	type: "NativeControl"
+dm.NativeControl = dm.View.clone().newSlots({
+	type: "dm.NativeControl"
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		var e = this.element();
 		e.style.border = "";

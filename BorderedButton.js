@@ -1,5 +1,5 @@
-BorderedButton = Button.clone().newSlots({
-	type: "BorderedButton",
+dm.BorderedButton = dm.Button.clone().newSlots({
+	type: "dm.BorderedButton",
 	borderImageUrl: null,
 	borderImage: null,
 	leftBorderWidth: 0,
@@ -62,7 +62,7 @@ BorderedButton = Button.clone().newSlots({
 	
 	sizeWidthToFit: function()
 	{
-		Button.sizeWidthToFit.call(this);
+		dm.Button.sizeWidthToFit.call(this);
 		w = this.width() + Math.max(this.leftBorderWidth() + this.rightBorderWidth(), 2*this.fontSize());
 		this.setWidth(w);
 	},

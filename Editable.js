@@ -1,12 +1,12 @@
-Editable = Delegator.clone().newSlots({
-	type: "Editable",
+dm.Editable = dm.Delegator.clone().newSlots({
+	type: "dm.Editable",
 	watchesSlots: true,
 	editableSlotDescriptions: [],
 	editableSlots: null
 }).setSlots({
 	init: function()
 	{
-		Delegator.init.call(this);
+		dm.Delegator.init.call(this);
 		
 		this.setEditableSlotDescriptions(this.editableSlotDescriptions().copy());
 	},
@@ -14,7 +14,7 @@ Editable = Delegator.clone().newSlots({
 	newEditableSlots: function()
 	{
 		var self = this;
-		Arguments_asArray(arguments).forEach(function(description){
+		dm.Arguments_asArray(arguments).forEach(function(description){
 			self.editableSlotDescriptions().append(description);
 			
 			self.newSlot(description.name, description.value);
@@ -45,8 +45,8 @@ Editable = Delegator.clone().newSlots({
 			this._editableSlots = [];
 			var self = this;
 			this.editableSlotDescriptions().forEach(function(description){
-				var editableSlot = window["Editable" + description.control.type.asCapitalized() + "Slot"].clone();
-				var control = Object_shallowCopy(description.control);
+				var editableSlot = dm.Object_lookupPath(window, "dm.Editable" + description.control.type.asCapitalized() + "Slot").clone();
+				var control = dm.Object_shallowCopy(description.control);
 				delete control.type;
 				editableSlot.control().performSets(control);
 				editableSlot.setName(description.name);

@@ -1,22 +1,22 @@
-TitledView = View.clone().newSlots({
-	type: "TitledView",
+dm.TitledView = dm.View.clone().newSlots({
+	type: "dm.TitledView",
 	title: "",
 	titleBar: null,
 	contentView: null
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		dm.View.init.call(this);
 		
-		if (Window.inited())
+		if (dm.Window.inited())
 		{
-			var l = Label.clone();
+			var l = dm.Label.clone();
 			l.setText("Title Bar");
 			l.sizeToFit();
 			l.resizeCentered();
 
-			var tb = View.clone();
-			tb.setBackgroundColor(Color.LightGray);
+			var tb = dm.View.clone();
+			tb.setBackgroundColor(dm.Color.LightGray);
 			tb.setWidth(l.width() + l.fontSize());
 			tb.setHeight(l.height() + l.fontSize());
 			tb.setResizesWidth(true);
@@ -26,7 +26,7 @@ TitledView = View.clone().newSlots({
 			l.center();
 			this.setTitleBar(tb);
 
-			var cv = View.clone();
+			var cv = dm.View.clone();
 			cv.setWidth(tb.width());
 			cv.setHeight(1);
 			cv.setY(tb.height());
@@ -37,15 +37,15 @@ TitledView = View.clone().newSlots({
 			this.setWidth(tb.width());
 			this.setHeight(tb.height() + cv.height());
 
-			var tbDivider = View.clone();
-			tbDivider.setBackgroundColor(Color.Gray);
+			var tbDivider = dm.View.clone();
+			tbDivider.setBackgroundColor(dm.Color.Gray);
 			tbDivider.setY(tb.height());
 			tbDivider.setWidth(tb.width());
 			tbDivider.setHeight(1);
 			tbDivider.setResizesWidth(true);
 
-			var rightDivider = View.clone();
-			rightDivider.setBackgroundColor(Color.Gray);
+			var rightDivider = dm.View.clone();
+			rightDivider.setBackgroundColor(dm.Color.Gray);
 			rightDivider.setX(this.width() - 1);
 			rightDivider.setWidth(1);
 			rightDivider.setHeight(this.height());

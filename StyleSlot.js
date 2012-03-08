@@ -1,4 +1,5 @@
-StyleSlot = Proto.clone().newSlots({
+dm.StyleSlot = dm.Proto.clone().newSlots({
+	type: "dm.StyleSlot",
 	view: null,
 	name: null,
 	styleName: null,

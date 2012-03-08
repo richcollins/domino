@@ -1,5 +1,5 @@
-View = Delegator.clone().newSlots({
-	type: "View",
+dm.View = dm.Delegator.clone().newSlots({
+	type: "dm.View",
 	superview: null,
 	subviews: [],
 	element: null,
@@ -18,14 +18,14 @@ View = Delegator.clone().newSlots({
 	for (var name in slots)
 	{
 		var p = slots[name];
-		var s = StyleSlot.clone();
+		var s = dm.StyleSlot.clone();
 		s.setView(this);
 		s.setName(name);
 		s.setStyleName(p.name || name);
 		s.setValue(p.value);
 		if (p.transformation)
 		{
-			var proto = window[p.transformation.name.asCapitalized() + "Transformation"];
+			var proto = dm.Object_lookupPath(window, "dm." + p.transformation.name.asCapitalized() + "Transformation");
 			if (proto)
 			{
 				s.setTransformation(proto.clone().setSlots(p.transformation));
@@ -48,16 +48,16 @@ View = Delegator.clone().newSlots({
 	topPaddingThickness: { name: "paddingTop", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	bottomPaddingThickness: { name: "paddingBottom", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-	borderColor: { value: Color.Black, transformation: { name: "color" } },
-	backgroundColor: { value: Color.Transparent, transformation: { name: "color" } },
+	borderColor: { value: dm.Color.Black, transformation: { name: "color" } },
+	backgroundColor: { value: dm.Color.Transparent, transformation: { name: "color" } },
 	display: { value: "block" },
 	zIndex: { value: 0 }
 });
 
-View.setSlots({
+dm.View.setSlots({
 	init: function()
 	{
-		Delegator.init.call(this);
+		dm.Delegator.init.call(this);
 		
 		this.setEventListeners({});
 		this.setStyleSlots(this.styleSlots().copy());
@@ -142,7 +142,7 @@ View.setSlots({
 					return;
 				}
 				
-				self.delegatePerform("mouseEntered", Window.viewWithElement(e.fromElement));
+				self.delegatePerform("mouseEntered", dm.Window.viewWithElement(e.fromElement));
 			}
 			e.onmouseout = function(e)
 			{
@@ -151,7 +151,7 @@ View.setSlots({
 					return;
 				}
 
-				self.delegatePerform("mouseExited", Window.viewWithElement(e.toElement));
+				self.delegatePerform("mouseExited", dm.Window.viewWithElement(e.toElement));
 			}
 		}
 		else
@@ -226,7 +226,7 @@ View.setSlots({
 	
 	size: function()
 	{
-		return Point.withXY(this.width(), this.height());
+		return dm.Point.withXY(this.width(), this.height());
 	},
 	
 	setSize: function(size)
@@ -383,7 +383,7 @@ View.setSlots({
 	addSubviews: function()
 	{
 		var self = this;
-		Arguments_asArray(arguments).forEach(function(view){
+		dm.Arguments_asArray(arguments).forEach(function(view){
 			self.addSubview(view);
 		});
 	},

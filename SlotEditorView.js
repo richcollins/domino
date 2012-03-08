@@ -1,13 +1,13 @@
-SlotEditorView = TableView.clone().newSlots({
-	type: "SlotEditorView",
+dm.SlotEditorView = dm.TableView.clone().newSlots({
+	type: "dm.SlotEditorView",
 	object: null
 }).setSlots({
 	init: function()
 	{
-		TableView.init.call(this);
+		dm.TableView.init.call(this);
 		
-		this.alignCol(0, TableView.ColAlignmentRight);
-		this.alignCol(1, TableView.ColAlignmentLeft);
+		this.alignCol(0, dm.TableView.ColAlignmentRight);
+		this.alignCol(1, dm.TableView.ColAlignmentLeft);
 	},
 	
 	setObject: function(object)

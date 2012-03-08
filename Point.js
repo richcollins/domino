@@ -1,5 +1,5 @@
-Point = Proto.clone().newSlots({
-	type: "Point",
+dm.Point = dm.Proto.clone().newSlots({
+	type: "dm.Point",
 	x: 0,
 	y: 0
 }).setSlots({

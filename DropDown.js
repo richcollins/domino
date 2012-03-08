@@ -1,10 +1,10 @@
-DropDown = NativeControl.clone().newSlots({
-	type: "DropDown",
+dm.DropDown = dm.NativeControl.clone().newSlots({
+	type: "dm.DropDown",
 	elementName: "select",
 }).setSlots({
 	initElement: function()
 	{
-		NativeControl.initElement.call(this);
+		dm.NativeControl.initElement.call(this);
 		
 		var self = this;
 		

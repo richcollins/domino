@@ -1,5 +1,5 @@
-HttpRequest = Delegator.clone().newSlots({
-	type: "HttpRequest",
+dm.HttpRequest = dm.Delegator.clone().newSlots({
+	type: "dm.HttpRequest",
 	method: "GET",
 	body: null,
 	url: null,
@@ -8,7 +8,7 @@ HttpRequest = Delegator.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
-		Delegator.init.call(this);
+		dm.Delegator.init.call(this);
 		this.setXmlHttpRequest(new XMLHttpRequest());
 	},
 	
@@ -21,7 +21,7 @@ HttpRequest = Delegator.clone().newSlots({
 		{
 			if (xhr.readyState == 4)
 			{
-				var response = HttpResponse.clone();
+				var response = dm.HttpResponse.clone();
 				response.setBody(xhr.responseText);
 				response.setStatusCode(xhr.status);
 				self.setResponse(response);

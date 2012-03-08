@@ -1,5 +1,5 @@
-TableView = View.clone().newSlots({
-	type: "TableView",
+dm.TableView = dm.View.clone().newSlots({
+	type: "dm.TableView",
 	rows: [],
 	vMargin: 8,
 	hMargin: 10,
@@ -8,7 +8,7 @@ TableView = View.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		dm.View.init.call(this);
 		this.setRows(this.rows().copy());
 		this.setRowAlignments(this.rowAlignments().copy());
 		this.setColAlignments(this.colAlignments().copy());
@@ -80,7 +80,7 @@ TableView = View.clone().newSlots({
 	
 	colWidth: function(col)
 	{
-		return this.rows().map(function(r){ return (r[col] || View.clone()).width() }).max();
+		return this.rows().map(function(r){ return (r[col] || dm.View.clone()).width() }).max();
 	},
 	
 	rowCount: function()
@@ -90,7 +90,7 @@ TableView = View.clone().newSlots({
 	
 	rowHeight: function(row)
 	{
-		var h = this.rows()[row].map(function(view){ return (view || View.clone()).height() }).max();
+		var h = this.rows()[row].map(function(view){ return (view || dm.View.clone()).height() }).max();
 		return h;
 	},
 	
@@ -135,11 +135,11 @@ TableView = View.clone().newSlots({
 				{
 					var leftEdge = this.hMargin() + c*this.hMargin() + c.map(function(c){ return self.colWidth(c) }).sum();
 					
-					if (colAlignment == TableView.ColAlignmentLeft)
+					if (colAlignment == dm.TableView.ColAlignmentLeft)
 					{
 						v.setX(leftEdge);
 					}
-					else if(colAlignment == TableView.ColAlignmentCenter)
+					else if(colAlignment == dm.TableView.ColAlignmentCenter)
 					{
 						v.setX(leftEdge + (this.colWidth(c) - v.width())/2);
 					}
@@ -149,11 +149,11 @@ TableView = View.clone().newSlots({
 					}
 					
 					var topEdge = this.vMargin() + r*this.vMargin() + r.map(function(r){ return self.rowHeight(r) }).sum();
-					if (rowAlignment == TableView.RowAlignmentTop)
+					if (rowAlignment == dm.TableView.RowAlignmentTop)
 					{
 						v.setY(topEdge);
 					}
-					else if(rowAlignment == TableView.RowAlignmentMiddle)
+					else if(rowAlignment == dm.TableView.RowAlignmentMiddle)
 					{
 						v.setY(topEdge + (this.rowHeight(r) - v.height())/2);
 					}
@@ -168,7 +168,7 @@ TableView = View.clone().newSlots({
 	}
 });
 
-TableView.newSlots({
-	defaultColAlignment: TableView.ColAlignmentCenter,
-	defaultRowAlignment: TableView.RowAlignmentMiddle
+dm.TableView.newSlots({
+	defaultColAlignment: dm.TableView.ColAlignmentCenter,
+	defaultRowAlignment: dm.TableView.RowAlignmentMiddle
 });

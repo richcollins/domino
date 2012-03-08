@@ -1,5 +1,5 @@
-VerticalListContentView = View.clone().newSlots({
-	type: "VerticalListContentView",
+dm.VerticalListContentView = dm.View.clone().newSlots({
+	type: "dm.VerticalListContentView",
 	items: [],
 	selectedItemIndex: null,
 	itemHMargin: 15,
@@ -9,13 +9,13 @@ VerticalListContentView = View.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		dm.View.init.call(this);
 		
 		this.setItems(this.items().copy());
 		
-		if(Window.inited())
+		if(dm.Window.inited())
 		{
-			var closeButton = ImageButton.clone().newSlot("itemView", null);
+			var closeButton = dm.ImageButton.clone().newSlot("itemView", null);
 			this.setCloseButton(closeButton);
 			closeButton.setDelegate(this);
 			closeButton.setDelegatePrefix("closeButton");
@@ -32,12 +32,12 @@ VerticalListContentView = View.clone().newSlots({
 	
 	addItemWithText: function(text)
 	{
-		var hMargin = VerticalListContentView.itemHMargin();
-		var vMargin = VerticalListContentView.itemVMargin();
+		var hMargin = dm.VerticalListContentView.itemHMargin();
+		var vMargin = dm.VerticalListContentView.itemVMargin();
 		
 		
-		var itemView = Button.clone().newSlots({
-			type: "ItemView",
+		var itemView = dm.Button.clone().newSlots({
+			type: "dm.ItemView",
 			label: null
 		}).clone();
 		itemView.setTracksMouse(true);
@@ -45,9 +45,9 @@ VerticalListContentView = View.clone().newSlots({
 		itemView.setWidth(this.width());
 		itemView.setResizesWidth(true);
 		
-		var label = Label.clone();
+		var label = dm.Label.clone();
 		itemView.setLabel(label);
-		label.setColor(Color.Gray);
+		label.setColor(dm.Color.Gray);
 		label.setText(text);
 		label.setWidth(this.width() - hMargin - 2*this.closeButton().width());
 		label.sizeHeightToFit();
@@ -91,13 +91,13 @@ VerticalListContentView = View.clone().newSlots({
 			if (selectedItem)
 			{
 				var l = selectedItem.label();
-				l.setColor(Color.Gray);
+				l.setColor(dm.Color.Gray);
 				l.setFontWeight("normal");
 			}
 		}
 
 		var l = button.label();
-		l.setColor(Color.Black);
+		l.setColor(dm.Color.Black);
 		l.setFontWeight("bold");
 		
 		this.setSelectedItemIndex(this.items().indexOf(button));
@@ -107,7 +107,7 @@ VerticalListContentView = View.clone().newSlots({
 	
 	addItem: function(itemView)
 	{
-		var hMargin = VerticalListContentView.itemHMargin();
+		var hMargin = dm.VerticalListContentView.itemHMargin();
 		
 		itemView.setY(this.items().length * itemView.height());
 		this.setHeight(itemView.bottomEdge());
