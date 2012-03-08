@@ -1,10 +1,12 @@
-Object_clone = function(obj)
+dm = {};
+
+dm.Object_clone = function(obj)
 {
-	Proto_constructor.prototype = obj;
-	return new Proto_constructor;
+	dm.Proto_constructor.prototype = obj;
+	return new dm.Proto_constructor;
 }
 
-Object_shallowCopy = function(obj)
+dm.Object_shallowCopy = function(obj)
 {
 	var newObj = {};
 	for (var name in obj)
@@ -18,7 +20,7 @@ Object_shallowCopy = function(obj)
 	return newObj;
 }
 
-function Object_eachSlot(obj, fn)
+dm.Object_eachSlot = function(obj, fn)
 {
 	for (var name in obj)
 	{
@@ -29,9 +31,31 @@ function Object_eachSlot(obj, fn)
 	}
 }
 
-Arguments_asArray = function(args)
+dm.Object_withLowerCaseKeys = function(obj)
+{
+	var lowered = {};
+	
+	dm.Object_eachSlot(obj, function(k, v){
+		lowered[k.toLowerCase()] = v;
+	})
+	
+	return lowered;
+}
+
+dm.Arguments_asArray = function(args)
 {
 	return Array.prototype.slice.call(args);
+}
+
+dm.Object_lookupPath = function(obj, path)
+{
+	path = path.split(".");
+	var pc;
+	while (obj && (pc = path.shift()))
+	{
+		obj = obj[pc];
+	}
+	return obj;
 }
 
 if (!Array.prototype.forEach)
@@ -58,18 +82,18 @@ String.prototype.asCapitalized = function()
 	});
 };
 
-Proto = new Object;
+dm.Proto = new Object;
 
-Proto.setSlot = function(name, value)
+dm.Proto.setSlot = function(name, value)
 {
 	this[name] = value;
 
 	return this;
 };
 
-Proto.uniqueIdCounter = 0;
+dm.Proto.uniqueIdCounter = 0;
 
-Proto.setSlots = function(slots)
+dm.Proto.setSlots = function(slots)
 {
 	for(name in slots)
 	{
@@ -90,19 +114,19 @@ Proto.setSlots = function(slots)
 	return this;
 };
 
-Proto_constructor = new Function;
+dm.Proto_constructor = new Function;
 
-Proto.setSlots(
+dm.Proto.setSlots(
 {
 	constructor: new Function,
 
 	clone: function()
 	{
-		Proto_constructor.prototype = this;
+		dm.Proto_constructor.prototype = this;
 	
-		var obj = new Proto_constructor;
+		var obj = new dm.Proto_constructor;
 		obj._proto = this;
-		obj._uniqueId = ++ Proto.uniqueIdCounter;
+		obj._uniqueId = ++ dm.Proto.uniqueIdCounter;
 		obj._applySuperMap = {};
 		if(obj.init)
 			obj.init();
@@ -404,10 +428,10 @@ Proto.setSlots(
 	}
 });
 
-Proto.newSlot("type", "Proto");
-Proto.newSlot("sender", null);
-Proto.removeSlot = Proto.removeSlots;
-Browser = Proto.clone().setSlots(
+dm.Proto.newSlot("type", "dm.Proto");
+dm.Proto.newSlot("sender", null);
+dm.Proto.removeSlot = dm.Proto.removeSlots;
+dm.Browser = dm.Proto.clone().setSlots(
 {
 	userAgent: function()
 	{
@@ -466,17 +490,17 @@ Browser = Proto.clone().setSlots(
 });
 
 (function(){
-	for(var slotName in Proto)
+	for(var slotName in dm.Proto)
 	{
 		[Array, String, Number, Date].forEach(function(contructorFunction)
 		{
-			if(contructorFunction == Array && slotName == "clone" && Browser.isInternetExplorer())
+			if(contructorFunction == Array && slotName == "clone" && dm.Browser.isInternetExplorer())
 			{
 				contructorFunction.prototype[slotName] = function(){ throw new Error("You can't clone an Array proto in IE yet.") };
 			}
 			else
 			{
-				contructorFunction.prototype[slotName] = Proto[slotName];
+				contructorFunction.prototype[slotName] = dm.Proto[slotName];
 			}
 			contructorFunction.clone = function()
 			{
@@ -486,7 +510,7 @@ Browser = Proto.clone().setSlots(
 	}
 })();
 
-Importer = Proto.clone().setType("Importer").newSlots({
+dm.Importer = dm.Proto.clone().setType("dm.Importer").newSlots({
 	basePath: null,
 	addsTimestamp: false
 }).setSlots(
@@ -1857,8 +1881,8 @@ String.prototype.asMD5Hex = function()
 	
 	return hex_md5(this);
 }
-NodeWrapper = Proto.clone().newSlots({
-	type: "NodeWrapper",
+dm.NodeWrapper = dm.Proto.clone().newSlots({
+	type: "dm.NodeWrapper",
 	node: null
 }).setSlots({
 	allAt: function(name)
@@ -1871,7 +1895,7 @@ NodeWrapper = Proto.clone().newSlots({
 			var n = node.childNodes[i];
 			if (n.nodeName == name)
 			{
-				nodes.push(NodeWrapper.clone().setNode(n));
+				nodes.push(dm.NodeWrapper.clone().setNode(n));
 			}
 		}
 		
@@ -1905,8 +1929,8 @@ NodeWrapper = Proto.clone().newSlots({
 		return this.node().textContent;
 	}
 });
-Cookie = Proto.clone().newSlots({
-	type: "Cookie",
+dm.Cookie = dm.Proto.clone().newSlots({
+	type: "dm.Cookie",
 	name: null,
 	value: null,
 	expirationDate: null,
@@ -1919,7 +1943,7 @@ Cookie = Proto.clone().newSlots({
 		document.cookie.split("; ").forEach(function(pair){
 			var name = pair.before("=");
 			var value = pair.after("=");
-			map[name] = Cookie.clone().setName(name).setValue(value);
+			map[name] = dm.Cookie.clone().setName(name).setValue(value);
 		});
 		
 		return map;
@@ -1953,7 +1977,7 @@ Cookie = Proto.clone().newSlots({
 		return this;
 	}
 });
-Color = Proto.clone().newSlots({
+dm.Color = dm.Proto.clone().newSlots({
 	red: 0,
 	green: 0,
 	blue: 0,
@@ -1976,7 +2000,7 @@ Color = Proto.clone().newSlots({
 	
 	withHex: function(hex)
 	{
-		return Color.withRGB(
+		return dm.Color.withRGB(
 			parseInt(hex.substring(0, 2), 16)/255,
 			parseInt(hex.substring(2, 4), 16)/255,
 			parseInt(hex.substring(4, 6), 16)/255
@@ -1984,33 +2008,33 @@ Color = Proto.clone().newSlots({
 	}
 });
 
-Color.setSlots({
-	Transparent: Color.clone().setAlpha(0),
-	White: Color.clone().setRed(1).setGreen(1).setBlue(1),
-	LightGray: Color.clone().setRed(212/255).setGreen(212/255).setBlue(212/255),
-	Gray: Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
-	DimGray: Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
-	Black: Color.clone(),
-	Red: Color.clone().setRed(1.0),
-	Green: Color.clone().setGreen(1.0),
-	DarkGreen: Color.clone().setGreen(100/255),
-	Yellow: Color.withRGB(1.0, 1.0, 0)
+dm.Color.setSlots({
+	Transparent: dm.Color.clone().setAlpha(0),
+	White: dm.Color.clone().setRed(1).setGreen(1).setBlue(1),
+	LightGray: dm.Color.clone().setRed(212/255).setGreen(212/255).setBlue(212/255),
+	Gray: dm.Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
+	DimGray: dm.Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
+	Black: dm.Color.clone(),
+	Red: dm.Color.clone().setRed(1.0),
+	Green: dm.Color.clone().setGreen(1.0),
+	DarkGreen: dm.Color.clone().setGreen(100/255),
+	Yellow: dm.Color.withRGB(1.0, 1.0, 0)
 });
 
-Delegator = Proto.clone().newSlots({
-	type: "Delegator",
+dm.Delegator = dm.Proto.clone().newSlots({
+	type: "dm.Delegator",
 	delegate: null,
 	delegatePrefix: null,
 	messagesDelegate: true
 }).setSlots({
 	init: function()
 	{
-		this.setDelegatePrefix(this.type().asUncapitalized());
+		this.setDelegatePrefix(this.type().split(".").last().asUncapitalized());
 	},
 	
 	delegateWith: function(slots)
 	{
-		return this.setDelegate(Proto.clone().setSlots(slots));
+		return this.setDelegate(dm.Proto.clone().setSlots(slots));
 	},
 	
 	delegateMessageName: function(messageName)
@@ -2030,7 +2054,7 @@ Delegator = Proto.clone().newSlots({
 	{
 		if (this.messagesDelegate())
 		{
-			var args = Arguments_asArray(arguments).slice(1);
+			var args = dm.Arguments_asArray(arguments).slice(1);
 			args.unshift(this);
 
 			var d = this.delegate();
@@ -2045,7 +2069,8 @@ Delegator = Proto.clone().newSlots({
 	}
 });
 
-StyleSlot = Proto.clone().newSlots({
+dm.StyleSlot = dm.Proto.clone().newSlots({
+	type: "dm.StyleSlot",
 	view: null,
 	name: null,
 	styleName: null,
@@ -2081,29 +2106,29 @@ StyleSlot = Proto.clone().newSlots({
 	}
 });
 
-ColorTransformation = Proto.clone().setSlots({
+dm.ColorTransformation = dm.Proto.clone().setSlots({
 	apply: function(color)
 	{
 		return "rgba(" + [color.red()*255, color.green()*255, color.blue()*255, color.alpha()].join(",") + ")";
 	}
 });
 
-SuffixTransformation = Proto.clone().setSlots({
+dm.SuffixTransformation = dm.Proto.clone().setSlots({
 	apply: function(value)
 	{
 		return value + this.suffix;
 	}
 });
 
-RoundedSuffixTransformation = Proto.clone().setSlots({
+dm.RoundedSuffixTransformation = dm.Proto.clone().setSlots({
 	apply: function(value)
 	{
 		return Math.round(value) + this.suffix;
 	}
 });
 
-Point = Proto.clone().newSlots({
-	type: "Point",
+dm.Point = dm.Proto.clone().newSlots({
+	type: "dm.Point",
 	x: 0,
 	y: 0
 }).setSlots({
@@ -2164,8 +2189,8 @@ Point = Proto.clone().newSlots({
 		return this.clone().setX(this.y()).setY(this.x());
 	}
 })
-View = Delegator.clone().newSlots({
-	type: "View",
+dm.View = dm.Delegator.clone().newSlots({
+	type: "dm.View",
 	superview: null,
 	subviews: [],
 	element: null,
@@ -2184,14 +2209,14 @@ View = Delegator.clone().newSlots({
 	for (var name in slots)
 	{
 		var p = slots[name];
-		var s = StyleSlot.clone();
+		var s = dm.StyleSlot.clone();
 		s.setView(this);
 		s.setName(name);
 		s.setStyleName(p.name || name);
 		s.setValue(p.value);
 		if (p.transformation)
 		{
-			var proto = window[p.transformation.name.asCapitalized() + "Transformation"];
+			var proto = dm.Object_lookupPath(window, "dm." + p.transformation.name.asCapitalized() + "Transformation");
 			if (proto)
 			{
 				s.setTransformation(proto.clone().setSlots(p.transformation));
@@ -2214,16 +2239,16 @@ View = Delegator.clone().newSlots({
 	topPaddingThickness: { name: "paddingTop", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	bottomPaddingThickness: { name: "paddingBottom", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-	borderColor: { value: Color.Black, transformation: { name: "color" } },
-	backgroundColor: { value: Color.Transparent, transformation: { name: "color" } },
+	borderColor: { value: dm.Color.Black, transformation: { name: "color" } },
+	backgroundColor: { value: dm.Color.Transparent, transformation: { name: "color" } },
 	display: { value: "block" },
 	zIndex: { value: 0 }
 });
 
-View.setSlots({
+dm.View.setSlots({
 	init: function()
 	{
-		Delegator.init.call(this);
+		dm.Delegator.init.call(this);
 		
 		this.setEventListeners({});
 		this.setStyleSlots(this.styleSlots().copy());
@@ -2308,7 +2333,7 @@ View.setSlots({
 					return;
 				}
 				
-				self.delegatePerform("mouseEntered", Window.viewWithElement(e.fromElement));
+				self.delegatePerform("mouseEntered", dm.Window.viewWithElement(e.fromElement));
 			}
 			e.onmouseout = function(e)
 			{
@@ -2317,7 +2342,7 @@ View.setSlots({
 					return;
 				}
 
-				self.delegatePerform("mouseExited", Window.viewWithElement(e.toElement));
+				self.delegatePerform("mouseExited", dm.Window.viewWithElement(e.toElement));
 			}
 		}
 		else
@@ -2392,7 +2417,7 @@ View.setSlots({
 	
 	size: function()
 	{
-		return Point.withXY(this.width(), this.height());
+		return dm.Point.withXY(this.width(), this.height());
 	},
 	
 	setSize: function(size)
@@ -2549,7 +2574,7 @@ View.setSlots({
 	addSubviews: function()
 	{
 		var self = this;
-		Arguments_asArray(arguments).forEach(function(view){
+		dm.Arguments_asArray(arguments).forEach(function(view){
 			self.addSubview(view);
 		});
 	},
@@ -2889,25 +2914,24 @@ View.setSlots({
 	}
 });
 
-Window = View.clone().newSlots({
-	type: "Window",
+dm.Window = dm.View.clone().newSlots({
+	type: "dm.Window",
 	lastResizeWidth: null,
 	lastResizeHeight: null,
 	inited: false
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		dm.View.init.call(this);
 		
-		document.body.innerHTML = "";
+		this.element().innerHTML = "";
 		
 		this.setLastResizeWidth(this.width());
 		this.setLastResizeHeight(this.height());
 		
 		window.onresize = function()
 		{
-			//alert("window.onresize");
-			Window.autoResize();
+			dm.Window.autoResize();
 		}
 		
 		var self = this;
@@ -2930,34 +2954,53 @@ Window = View.clone().newSlots({
 	
 	startResizeInterval: function() //window.onresize doesn't always work on mobile webkit.
 	{
-		var self = this;
-		this._resizeTimer = setInterval(function(){
-			if (self.width() != self.lastResizeWidth() || self.height() != self.lastResizeHeight())
-			{
-				self.autoResize();
-			}
-		}, 200);
+		if (!this._resizeTimer)
+		{
+			var self = this;
+			this._resizeTimer = setInterval(function(){
+				if (self.width() != self.lastResizeWidth() || self.height() != self.lastResizeHeight())
+				{
+					self.autoResize();
+				}
+			}, 200);
+		}
 	},
 	
 	createElement: function()
 	{
-		this.setElement(document.body);
+		if (!this.element())
+		{
+			this.setElement(document.body);
+		}
 	},
 
 	initElement: function()
 	{
+		//this.element().style.zIndex = 
 	},
 	
 	width: function()
 	{
-		return window.innerWidth; //document.body isn't reliable on mobile
-		//return this.element().clientWidth;
+		if (this.element() == document.body)
+		{
+			return window.innerWidth; //document.body isn't reliable on mobile
+		}
+		else
+		{
+			return this.element().clientWidth;
+		}
 	},
 	
 	height: function()
 	{
-		return window.innerHeight; //document.body isn't reliable on mobile
-		//return this.element().clientHeight;
+		if (this.element() == document.body)
+		{
+			return window.innerHeight; //document.body isn't reliable on mobile
+		}
+		else
+		{
+			return this.element().clientHeight;
+		}
 	},
 	
 	autoResize: function()
@@ -2965,22 +3008,24 @@ Window = View.clone().newSlots({
 		this.subviews().forEachPerform("autoResize", this.lastResizeWidth(), this.lastResizeHeight());
 		this.setLastResizeWidth(this.width());
 		this.setLastResizeHeight(this.height());
+	},
+	
+	windowLoaded: function()
+	{
+		dm.Window.init();
 	}
 });
 
-window.addEventListener("load", function(){
-	Window.init();
-});
-
-Label = View.clone().newSlots({
-	type: "Label",
+window.addEventListener("load", dm.Window.windowLoaded);
+dm.Label = dm.View.clone().newSlots({
+	type: "dm.Label",
 	text: null
 }).newStyleSlots({
 	fontFamily: { value: "Helvetica, Arial, sans-serif" },
 	fontSize: { value: 15, transformation: { name: "suffix", suffix: "px" } },
 	fontWeight: { value: "normal" },
 	textDecoration: { value: "none" },
-	color: { value: Color.Black, transformation: { name: "color" } },
+	color: { value: dm.Color.Black, transformation: { name: "color" } },
 	textOverflow: { value: "ellipsis" },
 	whiteSpace: { value: "pre" },
 	textAlign: { value: "left" },
@@ -3005,15 +3050,15 @@ rightPaddingThickness: { name: "paddingRight", value: 0, transformation: { name:
 topPaddingThickness: { name: "paddingTop", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 bottomPaddingThickness: { name: "paddingBottom", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-borderColor: { value: Color.Black, transformation: { name: "color" } },
+borderColor: { value: dm.Color.Black, transformation: { name: "color" } },
 */
 
-NativeControl = View.clone().newSlots({
-	type: "NativeControl"
+dm.NativeControl = dm.View.clone().newSlots({
+	type: "dm.NativeControl"
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		var e = this.element();
 		e.style.border = "";
@@ -3021,16 +3066,16 @@ NativeControl = View.clone().newSlots({
 		e.style.padding = "";
 	}
 });
-TextField = Label.clone().newSlots({
-	type: "TextField",
+dm.TextField = dm.Label.clone().newSlots({
+	type: "dm.TextField",
 	elementName: "input",
 	placeholderText: "Enter Text",
-	placeholderTextColor: Color.Gray,
+	placeholderTextColor: dm.Color.Gray,
 	growsToFit: true
 }).setSlots({
 	initElement: function()
 	{
-		NativeControl.initElement.call(this); //hack since TextField clones Label
+		dm.NativeControl.initElement.call(this); //hack since TextField clones Label
 		
 		var e = this.element();
 		
@@ -3207,13 +3252,13 @@ TextField = Label.clone().newSlots({
 	}
 });
 
-TextArea = NativeControl.clone().newSlots({
-	type: "TextArea",
+dm.TextArea = dm.NativeControl.clone().newSlots({
+	type: "dm.TextArea",
 	elementName: "textarea"
 }).setSlots({
 	initElement: function()
 	{
-		NativeControl.initElement.call(this);
+		dm.NativeControl.initElement.call(this);
 		
 		var e = this.element();
 		
@@ -3259,12 +3304,12 @@ TextArea = NativeControl.clone().newSlots({
 	}
 });
 
-Button = Label.clone().newSlots({
-	type: "Button"
+dm.Button = dm.Label.clone().newSlots({
+	type: "dm.Button"
 }).setSlots({
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		this.setTextAlign("center");
 		
@@ -3297,20 +3342,20 @@ Button = Label.clone().newSlots({
 	}
 });
 
-CheckBox = NativeControl.clone().newSlots({
-	type: "CheckBox",
+dm.CheckBox = dm.NativeControl.clone().newSlots({
+	type: "dm.CheckBox",
 	elementName: "input",
 	checked: false
 }).setSlots({
 	init: function()
 	{
-		NativeControl.init.call(this);
+		dm.NativeControl.init.call(this);
 		this.sizeToFit();
 	},
 	
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		var self = this;
 		
@@ -3340,7 +3385,7 @@ CheckBox = NativeControl.clone().newSlots({
 	
 	sizeToFit: function()
 	{
-		View.sizeToFit.call(this);
+		dm.View.sizeToFit.call(this);
 		this.setWidth(this.width() + 2);
 		this.setHeight(this.height() + 2);
 	},
@@ -3356,13 +3401,13 @@ CheckBox = NativeControl.clone().newSlots({
 	}
 });
 
-DropDown = NativeControl.clone().newSlots({
-	type: "DropDown",
+dm.DropDown = dm.NativeControl.clone().newSlots({
+	type: "dm.DropDown",
 	elementName: "select",
 }).setSlots({
 	initElement: function()
 	{
-		NativeControl.initElement.call(this);
+		dm.NativeControl.initElement.call(this);
 		
 		var self = this;
 		
@@ -3411,19 +3456,19 @@ DropDown = NativeControl.clone().newSlots({
 	}
 });
 
-ScrollView = View.clone().newSlots({
-	type: "ScrollView",
+dm.ScrollView = dm.View.clone().newSlots({
+	type: "dm.ScrollView",
 	contentView: null
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
-		this.setContentView(View.clone());
+		dm.View.init.call(this);
+		this.setContentView(dm.View.clone());
 	},
 	
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		this.element().style.overflow = "auto";
 	},
@@ -3450,25 +3495,25 @@ ScrollView = View.clone().newSlots({
 	}
 });
 
-TitledView = View.clone().newSlots({
-	type: "TitledView",
+dm.TitledView = dm.View.clone().newSlots({
+	type: "dm.TitledView",
 	title: "",
 	titleBar: null,
 	contentView: null
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		dm.View.init.call(this);
 		
-		if (Window.inited())
+		if (dm.Window.inited())
 		{
-			var l = Label.clone();
+			var l = dm.Label.clone();
 			l.setText("Title Bar");
 			l.sizeToFit();
 			l.resizeCentered();
 
-			var tb = View.clone();
-			tb.setBackgroundColor(Color.LightGray);
+			var tb = dm.View.clone();
+			tb.setBackgroundColor(dm.Color.LightGray);
 			tb.setWidth(l.width() + l.fontSize());
 			tb.setHeight(l.height() + l.fontSize());
 			tb.setResizesWidth(true);
@@ -3478,7 +3523,7 @@ TitledView = View.clone().newSlots({
 			l.center();
 			this.setTitleBar(tb);
 
-			var cv = View.clone();
+			var cv = dm.View.clone();
 			cv.setWidth(tb.width());
 			cv.setHeight(1);
 			cv.setY(tb.height());
@@ -3489,15 +3534,15 @@ TitledView = View.clone().newSlots({
 			this.setWidth(tb.width());
 			this.setHeight(tb.height() + cv.height());
 
-			var tbDivider = View.clone();
-			tbDivider.setBackgroundColor(Color.Gray);
+			var tbDivider = dm.View.clone();
+			tbDivider.setBackgroundColor(dm.Color.Gray);
 			tbDivider.setY(tb.height());
 			tbDivider.setWidth(tb.width());
 			tbDivider.setHeight(1);
 			tbDivider.setResizesWidth(true);
 
-			var rightDivider = View.clone();
-			rightDivider.setBackgroundColor(Color.Gray);
+			var rightDivider = dm.View.clone();
+			rightDivider.setBackgroundColor(dm.Color.Gray);
 			rightDivider.setX(this.width() - 1);
 			rightDivider.setWidth(1);
 			rightDivider.setHeight(this.height());
@@ -3521,8 +3566,8 @@ TitledView = View.clone().newSlots({
 	}
 });
 
-TableView = View.clone().newSlots({
-	type: "TableView",
+dm.TableView = dm.View.clone().newSlots({
+	type: "dm.TableView",
 	rows: [],
 	vMargin: 8,
 	hMargin: 10,
@@ -3531,7 +3576,7 @@ TableView = View.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		dm.View.init.call(this);
 		this.setRows(this.rows().copy());
 		this.setRowAlignments(this.rowAlignments().copy());
 		this.setColAlignments(this.colAlignments().copy());
@@ -3603,7 +3648,7 @@ TableView = View.clone().newSlots({
 	
 	colWidth: function(col)
 	{
-		return this.rows().map(function(r){ return (r[col] || View.clone()).width() }).max();
+		return this.rows().map(function(r){ return (r[col] || dm.View.clone()).width() }).max();
 	},
 	
 	rowCount: function()
@@ -3613,7 +3658,7 @@ TableView = View.clone().newSlots({
 	
 	rowHeight: function(row)
 	{
-		var h = this.rows()[row].map(function(view){ return (view || View.clone()).height() }).max();
+		var h = this.rows()[row].map(function(view){ return (view || dm.View.clone()).height() }).max();
 		return h;
 	},
 	
@@ -3658,11 +3703,11 @@ TableView = View.clone().newSlots({
 				{
 					var leftEdge = this.hMargin() + c*this.hMargin() + c.map(function(c){ return self.colWidth(c) }).sum();
 					
-					if (colAlignment == TableView.ColAlignmentLeft)
+					if (colAlignment == dm.TableView.ColAlignmentLeft)
 					{
 						v.setX(leftEdge);
 					}
-					else if(colAlignment == TableView.ColAlignmentCenter)
+					else if(colAlignment == dm.TableView.ColAlignmentCenter)
 					{
 						v.setX(leftEdge + (this.colWidth(c) - v.width())/2);
 					}
@@ -3672,11 +3717,11 @@ TableView = View.clone().newSlots({
 					}
 					
 					var topEdge = this.vMargin() + r*this.vMargin() + r.map(function(r){ return self.rowHeight(r) }).sum();
-					if (rowAlignment == TableView.RowAlignmentTop)
+					if (rowAlignment == dm.TableView.RowAlignmentTop)
 					{
 						v.setY(topEdge);
 					}
-					else if(rowAlignment == TableView.RowAlignmentMiddle)
+					else if(rowAlignment == dm.TableView.RowAlignmentMiddle)
 					{
 						v.setY(topEdge + (this.rowHeight(r) - v.height())/2);
 					}
@@ -3691,12 +3736,12 @@ TableView = View.clone().newSlots({
 	}
 });
 
-TableView.newSlots({
-	defaultColAlignment: TableView.ColAlignmentCenter,
-	defaultRowAlignment: TableView.RowAlignmentMiddle
+dm.TableView.newSlots({
+	defaultColAlignment: dm.TableView.ColAlignmentCenter,
+	defaultRowAlignment: dm.TableView.RowAlignmentMiddle
 });
-VerticalListContentView = View.clone().newSlots({
-	type: "VerticalListContentView",
+dm.VerticalListContentView = dm.View.clone().newSlots({
+	type: "dm.VerticalListContentView",
 	items: [],
 	selectedItemIndex: null,
 	itemHMargin: 15,
@@ -3706,13 +3751,13 @@ VerticalListContentView = View.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
-		View.init.call(this);
+		dm.View.init.call(this);
 		
 		this.setItems(this.items().copy());
 		
-		if(Window.inited())
+		if(dm.Window.inited())
 		{
-			var closeButton = ImageButton.clone().newSlot("itemView", null);
+			var closeButton = dm.ImageButton.clone().newSlot("itemView", null);
 			this.setCloseButton(closeButton);
 			closeButton.setDelegate(this);
 			closeButton.setDelegatePrefix("closeButton");
@@ -3729,12 +3774,12 @@ VerticalListContentView = View.clone().newSlots({
 	
 	addItemWithText: function(text)
 	{
-		var hMargin = VerticalListContentView.itemHMargin();
-		var vMargin = VerticalListContentView.itemVMargin();
+		var hMargin = dm.VerticalListContentView.itemHMargin();
+		var vMargin = dm.VerticalListContentView.itemVMargin();
 		
 		
-		var itemView = Button.clone().newSlots({
-			type: "ItemView",
+		var itemView = dm.Button.clone().newSlots({
+			type: "dm.ItemView",
 			label: null
 		}).clone();
 		itemView.setTracksMouse(true);
@@ -3742,9 +3787,9 @@ VerticalListContentView = View.clone().newSlots({
 		itemView.setWidth(this.width());
 		itemView.setResizesWidth(true);
 		
-		var label = Label.clone();
+		var label = dm.Label.clone();
 		itemView.setLabel(label);
-		label.setColor(Color.Gray);
+		label.setColor(dm.Color.Gray);
 		label.setText(text);
 		label.setWidth(this.width() - hMargin - 2*this.closeButton().width());
 		label.sizeHeightToFit();
@@ -3788,13 +3833,13 @@ VerticalListContentView = View.clone().newSlots({
 			if (selectedItem)
 			{
 				var l = selectedItem.label();
-				l.setColor(Color.Gray);
+				l.setColor(dm.Color.Gray);
 				l.setFontWeight("normal");
 			}
 		}
 
 		var l = button.label();
-		l.setColor(Color.Black);
+		l.setColor(dm.Color.Black);
 		l.setFontWeight("bold");
 		
 		this.setSelectedItemIndex(this.items().indexOf(button));
@@ -3804,7 +3849,7 @@ VerticalListContentView = View.clone().newSlots({
 	
 	addItem: function(itemView)
 	{
-		var hMargin = VerticalListContentView.itemHMargin();
+		var hMargin = dm.VerticalListContentView.itemHMargin();
 		
 		itemView.setY(this.items().length * itemView.height());
 		this.setHeight(itemView.bottomEdge());
@@ -3877,8 +3922,8 @@ VerticalListContentView = View.clone().newSlots({
 	}
 });
 
-VerticalListView = TitledView.clone().newSlots({
-	type: "VerticalListView",
+dm.VerticalListView = dm.TitledView.clone().newSlots({
+	type: "dm.VerticalListView",
 	scrollView: null,
 	controlsView: null,
 	addButton: null,
@@ -3887,14 +3932,14 @@ VerticalListView = TitledView.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
-		TitledView.init.call(this);
+		dm.TitledView.init.call(this);
 		
-		if (Window.inited())
+		if (dm.Window.inited())
 		{
-			var addButton = Button.clone();
+			var addButton = dm.Button.clone();
 			addButton.setFontWeight("bold");
 			addButton.setText("+");
-			addButton.setColor(Color.DimGray);
+			addButton.setColor(dm.Color.DimGray);
 			addButton.sizeToFit();
 			addButton.setX(addButton.fontSize());
 			addButton.setY(addButton.fontSize()/2);
@@ -3903,13 +3948,13 @@ VerticalListView = TitledView.clone().newSlots({
 		
 			var selfWidth = Math.max(addButton.width() + addButton.fontSize(), this.titleBar().width());
 		
-			var contentView = VerticalListContentView.clone();
+			var contentView = dm.VerticalListContentView.clone();
 			contentView.setWidth(selfWidth);
 			contentView.setResizesWidth(true);
 			contentView.setDelegate(this);
 			contentView.setDelegatePrefix("vlcv");
 		
-			var scrollView = ScrollView.clone();
+			var scrollView = dm.ScrollView.clone();
 			scrollView.setWidth(selfWidth);
 			scrollView.setHeight(1);
 			scrollView.setResizesHeight(true);
@@ -3917,8 +3962,8 @@ VerticalListView = TitledView.clone().newSlots({
 			scrollView.setContentView(contentView);
 			this.setScrollView(scrollView);
 		
-			var controlsView = View.clone();
-			controlsView.setBackgroundColor(Color.LightGray);
+			var controlsView = dm.View.clone();
+			controlsView.setBackgroundColor(dm.Color.LightGray);
 			controlsView.setY(scrollView.height());
 			controlsView.setWidth(selfWidth);
 			controlsView.setHeight(addButton.height() + 0.5*addButton.fontSize());
@@ -3927,8 +3972,8 @@ VerticalListView = TitledView.clone().newSlots({
 		
 			this.setControlsView(controlsView);
 		
-			var controlsDivider = View.clone();
-			controlsDivider.setBackgroundColor(Color.Gray);
+			var controlsDivider = dm.View.clone();
+			controlsDivider.setBackgroundColor(dm.Color.Gray);
 			controlsDivider.setY(controlsView.y() - 1);
 			controlsDivider.setWidth(selfWidth);
 			controlsDivider.setHeight(1);
@@ -3952,17 +3997,17 @@ VerticalListView = TitledView.clone().newSlots({
 	{
 		if (this.allowsItemEditing())
 		{
-			var hMargin = VerticalListContentView.itemHMargin();
-			var vMargin = VerticalListContentView.itemVMargin();
+			var hMargin = dm.VerticalListContentView.itemHMargin();
+			var vMargin = dm.VerticalListContentView.itemVMargin();
 
-			var textField = TextField.clone();
+			var textField = dm.TextField.clone();
 			textField.setText(this.defaultItemText());
 			textField.setWidth(this.width() - 2*hMargin);
 			textField.sizeHeightToFit();
 			textField.setX(hMargin);
 			textField.setDelegate(this);
 
-			var itemView = View.clone();
+			var itemView = dm.View.clone();
 			itemView.setWidth(this.width());
 			itemView.setHeight(textField.height() + vMargin);
 
@@ -4039,7 +4084,7 @@ VerticalListView = TitledView.clone().newSlots({
 	
 	setHeight: function(h)
 	{
-		TitledView.setHeight.call(this, h);
+		dm.TitledView.setHeight.call(this, h);
 		if (this.scrollView())
 		{
 			this.updateButtons();
@@ -4107,8 +4152,8 @@ VerticalListView = TitledView.clone().newSlots({
 	}
 });
 
-ImageView = View.clone().newSlots({
-	type: "ImageView",
+dm.ImageView = dm.View.clone().newSlots({
+	type: "dm.ImageView",
 	url: null,
 	elementName: "img"
 }).setSlots({
@@ -4119,8 +4164,8 @@ ImageView = View.clone().newSlots({
 		return this;
 	}
 });
-BorderedButton = Button.clone().newSlots({
-	type: "BorderedButton",
+dm.BorderedButton = dm.Button.clone().newSlots({
+	type: "dm.BorderedButton",
 	borderImageUrl: null,
 	borderImage: null,
 	leftBorderWidth: 0,
@@ -4183,7 +4228,7 @@ BorderedButton = Button.clone().newSlots({
 	
 	sizeWidthToFit: function()
 	{
-		Button.sizeWidthToFit.call(this);
+		dm.Button.sizeWidthToFit.call(this);
 		w = this.width() + Math.max(this.leftBorderWidth() + this.rightBorderWidth(), 2*this.fontSize());
 		this.setWidth(w);
 	},
@@ -4201,19 +4246,19 @@ BorderedButton = Button.clone().newSlots({
 		style.lineHeight = h + "px";
 	}
 });
-ImageButton = Button.clone().newSlots({
-	type: "ImageButton",
+dm.ImageButton = dm.Button.clone().newSlots({
+	type: "dm.ImageButton",
 	imageUrl: null,
 	imageView: null
 }).setSlots({
 	init: function()
 	{
-		Button.init.call(this);
+		dm.Button.init.call(this);
 		
 		this.setWidth(3);
 		this.setHeight(3);
 		
-		var iv = ImageView.clone();
+		var iv = dm.ImageView.clone();
 		iv.setWidth(3);
 		iv.setHeight(3);
 		iv.resizeToFill();
@@ -4226,8 +4271,8 @@ ImageButton = Button.clone().newSlots({
 		this.imageView().setUrl(imageUrl);
 	}
 });
-VideoView = View.clone().newSlots({
-	type: "VideoView",
+dm.VideoView = dm.View.clone().newSlots({
+	type: "dm.VideoView",
 	url: null,
 	nativeWidth: null,
 	nativeHeight: null,
@@ -4250,7 +4295,7 @@ VideoView = View.clone().newSlots({
 	
 	initElement: function()
 	{
-		View.initElement.call(this);
+		dm.View.initElement.call(this);
 		
 		var self = this;
 		var e = this.element();
@@ -4350,82 +4395,23 @@ VideoView = View.clone().newSlots({
 		return this.width() / this.nativeWidth();
 	}
 });
-AsyncQueue = Delegator.clone().newSlots({
-	workers: null,
-	timeout: null
-}).setSlots({
-	init: function()
-	{
-		Delegator.init.call(this);
-		this.setWorkers([]);
-	},
-	
-	addWorker: function(worker)
-	{
-		worker.performSets({
-			delegate: this,
-			delegatePrefix: "asyncWorker",
-		});
-		this.workers().append(worker);
-	},
-	
-	start: function()
-	{
-		if (this.timeout())
-		{
-			var self = this;
-			this._timeoutId = setTimeout(function(){
-				self.fail();
-			}, this.timeout());
-		}
-		this.workers().forEachPerform("asyncQueueStart");
-	},
-	
-	asyncWorkerCompleted: function(worker)
-	{
-		this.workers().remove(worker);
-		if (this.workers().isEmpty())
-		{
-			this.delegatePerform("succeeded");
-			this.complete();
-		}
-	},
-	
-	asyncWorkerFailed: function(worker)
-	{
-		this.fail();
-	},
-	
-	fail: function()
-	{
-		this.delegatePerform("failed");
-		this.complete();
-	},
-	
-	complete: function()
-	{
-		clearTimeout(this._timeoutId);
-		this.delegatePerform("completed");
-		this.setMessagesDelegate(false);
-	}
-});
-ProgressIndicatorView = View.clone().newSlots({
-	type: "ProgressIndicatorView",
+dm.ProgressIndicatorView = dm.View.clone().newSlots({
+	type: "dm.ProgressIndicatorView",
 	progress: 0,
 	progressView: null
 }).setSlots({
 	init: function()
 	{
-		this.setBackgroundColor(Color.withRGBA(0, 0, 0, 0.75));
+		this.setBackgroundColor(dm.Color.withRGBA(0, 0, 0, 0.75));
 		
-		var progressView = View.clone();
+		var progressView = dm.View.clone();
 		this.setProgressView(progressView);
 		progressView.performSets({
 			width: 0,
 			height: this.height(),
 			resizesHeight: true,
 			resizesRight: true,
-			backgroundColor: Color.withRGBA(1, 1, 1, 0.25)
+			backgroundColor: dm.Color.withRGBA(1, 1, 1, 0.25)
 		});
 		this.addSubview(progressView);
 	},
@@ -4438,15 +4424,15 @@ ProgressIndicatorView = View.clone().newSlots({
 		return this;
 	}
 });
-Editable = Delegator.clone().newSlots({
-	type: "Editable",
+dm.Editable = dm.Delegator.clone().newSlots({
+	type: "dm.Editable",
 	watchesSlots: true,
 	editableSlotDescriptions: [],
 	editableSlots: null
 }).setSlots({
 	init: function()
 	{
-		Delegator.init.call(this);
+		dm.Delegator.init.call(this);
 		
 		this.setEditableSlotDescriptions(this.editableSlotDescriptions().copy());
 	},
@@ -4454,7 +4440,7 @@ Editable = Delegator.clone().newSlots({
 	newEditableSlots: function()
 	{
 		var self = this;
-		Arguments_asArray(arguments).forEach(function(description){
+		dm.Arguments_asArray(arguments).forEach(function(description){
 			self.editableSlotDescriptions().append(description);
 			
 			self.newSlot(description.name, description.value);
@@ -4485,8 +4471,8 @@ Editable = Delegator.clone().newSlots({
 			this._editableSlots = [];
 			var self = this;
 			this.editableSlotDescriptions().forEach(function(description){
-				var editableSlot = window["Editable" + description.control.type.asCapitalized() + "Slot"].clone();
-				var control = Object_shallowCopy(description.control);
+				var editableSlot = dm.Object_lookupPath(window, "dm.Editable" + description.control.type.asCapitalized() + "Slot").clone();
+				var control = dm.Object_shallowCopy(description.control);
 				delete control.type;
 				editableSlot.control().performSets(control);
 				editableSlot.setName(description.name);
@@ -4518,8 +4504,8 @@ Editable = Delegator.clone().newSlots({
 	}
 });
 
-EditableSlot = Proto.clone().newSlots({
-	type: "EditableSlot",
+dm.EditableSlot = dm.Proto.clone().newSlots({
+	type: "dm.EditableSlot",
 	object: null,
 	name: null,
 	normalizer: null,
@@ -4533,7 +4519,7 @@ EditableSlot = Proto.clone().newSlots({
 	{
 		if (!this._label)
 		{
-			var l = Label.clone();
+			var l = dm.Label.clone();
 			l.setText(this.name().humanized());
 			l.sizeToFit();
 			this._label = l;
@@ -4584,9 +4570,9 @@ EditableSlot = Proto.clone().newSlots({
 	}
 });
 
-EditableCheckBoxSlot = EditableSlot.clone().newSlots({
-	type: "EditableCheckBoxSlot",
-	controlProto: CheckBox
+dm.EditableCheckBoxSlot = dm.EditableSlot.clone().newSlots({
+	type: "dm.EditableCheckBoxSlot",
+	controlProto: dm.CheckBox
 }).setSlots({
 	checkBoxChanged: function(dd)
 	{
@@ -4594,9 +4580,9 @@ EditableCheckBoxSlot = EditableSlot.clone().newSlots({
 	}
 });
 
-EditableDropDownSlot = EditableSlot.clone().newSlots({
-	type: "EditableDropDownSlot",
-	controlProto: DropDown
+dm.EditableDropDownSlot = dm.EditableSlot.clone().newSlots({
+	type: "dm.EditableDropDownSlot",
+	controlProto: dm.DropDown
 }).setSlots({
 	dropDownChanged: function(dd)
 	{
@@ -4604,9 +4590,9 @@ EditableDropDownSlot = EditableSlot.clone().newSlots({
 	}
 });
 
-EditableTextFieldSlot = EditableSlot.clone().newSlots({
-	type: "EditableTextFieldSlot",
-	controlProto: TextField
+dm.EditableTextFieldSlot = dm.EditableSlot.clone().newSlots({
+	type: "dm.EditableTextFieldSlot",
+	controlProto: dm.TextField
 }).setSlots({
 	textFieldChanged: function(tf)
 	{
@@ -4619,9 +4605,9 @@ EditableTextFieldSlot = EditableSlot.clone().newSlots({
 	}
 });
 
-EditableTextAreaSlot = EditableSlot.clone().newSlots({
-	type: "EditableTextAreaSlot",
-	controlProto: TextArea
+dm.EditableTextAreaSlot = dm.EditableSlot.clone().newSlots({
+	type: "dm.EditableTextAreaSlot",
+	controlProto: dm.TextArea
 }).setSlots({
 	textAreaEditingEnded: function(tf)
 	{
@@ -4629,16 +4615,16 @@ EditableTextAreaSlot = EditableSlot.clone().newSlots({
 	}
 });
 
-SlotEditorView = TableView.clone().newSlots({
-	type: "SlotEditorView",
+dm.SlotEditorView = dm.TableView.clone().newSlots({
+	type: "dm.SlotEditorView",
 	object: null
 }).setSlots({
 	init: function()
 	{
-		TableView.init.call(this);
+		dm.TableView.init.call(this);
 		
-		this.alignCol(0, TableView.ColAlignmentRight);
-		this.alignCol(1, TableView.ColAlignmentLeft);
+		this.alignCol(0, dm.TableView.ColAlignmentRight);
+		this.alignCol(1, dm.TableView.ColAlignmentLeft);
 	},
 	
 	setObject: function(object)
@@ -4666,8 +4652,8 @@ SlotEditorView = TableView.clone().newSlots({
 	}
 });
 
-HttpResponse = Proto.clone().newSlots({
-	type: "HttpResponse",
+dm.HttpResponse = dm.Proto.clone().newSlots({
+	type: "dm.HttpResponse",
 	body: null,
 	statusCode: null
 }).setSlots({
@@ -4678,8 +4664,8 @@ HttpResponse = Proto.clone().newSlots({
 	}
 });
 
-HttpRequest = Delegator.clone().newSlots({
-	type: "HttpRequest",
+dm.HttpRequest = dm.Delegator.clone().newSlots({
+	type: "dm.HttpRequest",
 	method: "GET",
 	body: null,
 	url: null,
@@ -4688,7 +4674,7 @@ HttpRequest = Delegator.clone().newSlots({
 }).setSlots({
 	init: function()
 	{
-		Delegator.init.call(this);
+		dm.Delegator.init.call(this);
 		this.setXmlHttpRequest(new XMLHttpRequest());
 	},
 	
@@ -4701,7 +4687,7 @@ HttpRequest = Delegator.clone().newSlots({
 		{
 			if (xhr.readyState == 4)
 			{
-				var response = HttpResponse.clone();
+				var response = dm.HttpResponse.clone();
 				response.setBody(xhr.responseText);
 				response.setStatusCode(xhr.status);
 				self.setResponse(response);
@@ -4727,14 +4713,14 @@ HttpRequest = Delegator.clone().newSlots({
 	}
 });
 
-App = Delegator.clone().newSlots({
-	type: "App"
+dm.App = dm.Delegator.clone().newSlots({
+	type: "dm.App"
 }).setSlots({
 	init: function()
 	{
-		Delegator.init.call(this);
+		dm.Delegator.init.call(this);
 		
-		Window.setDelegate(this);
+		dm.Window.setDelegate(this);
 	},
 	
 	windowInited: function()
