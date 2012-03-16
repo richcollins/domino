@@ -2666,10 +2666,14 @@ dm.View.setSlots({
 	
 	centerVertically: function()
 	{
-		var s = this.superview();
-		if (s)
+		this.centerVerticallyInView(this.superview());
+	},
+	
+	centerVerticallyInView: function(v)
+	{
+		if (v)
 		{
-			this.setY((s.height() - this.height())/2);
+			this.setY((v.height() - this.height())/2);
 		}
 	},
 	
@@ -3320,9 +3324,9 @@ dm.Button = dm.Label.clone().newSlots({
 		
 		var self = this;
 		var e = this.element();
-		e.onclick = function()
+		e.onclick = function(e)
 		{
-			self.delegatePerform("clicked");
+			self.delegatePerform("clicked", e);
 		}
 		e.style.cursor = "pointer";
 	},

@@ -475,10 +475,14 @@ dm.View.setSlots({
 	
 	centerVertically: function()
 	{
-		var s = this.superview();
-		if (s)
+		this.centerVerticallyInView(this.superview());
+	},
+	
+	centerVerticallyInView: function(v)
+	{
+		if (v)
 		{
-			this.setY((s.height() - this.height())/2);
+			this.setY((v.height() - this.height())/2);
 		}
 	},
 	

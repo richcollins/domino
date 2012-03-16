@@ -9,9 +9,9 @@ dm.Button = dm.Label.clone().newSlots({
 		
 		var self = this;
 		var e = this.element();
-		e.onclick = function()
+		e.onclick = function(e)
 		{
-			self.delegatePerform("clicked");
+			self.delegatePerform("clicked", e);
 		}
 		e.style.cursor = "pointer";
 	},
