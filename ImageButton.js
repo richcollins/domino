@@ -11,6 +11,8 @@ dm.ImageButton = dm.Button.clone().newSlots({
 		this.setHeight(3);
 		
 		var iv = dm.ImageView.clone();
+		iv.setDelegate(this);
+		iv.setDelegatePrefix("imageView");
 		iv.setWidth(3);
 		iv.setHeight(3);
 		iv.resizeToFill();
@@ -21,5 +23,17 @@ dm.ImageButton = dm.Button.clone().newSlots({
 	setImageUrl: function(imageUrl)
 	{
 		this.imageView().setUrl(imageUrl);
+	},
+	
+	imageViewLoaded: function()
+	{
+		this.delegatePerform("loaded");
+	},
+	
+	sizeToFit: function()
+	{
+		this.setSize(this.imageView().naturalSize());
+		this.imageView().setSize(this.imageView().naturalSize());
+		return this;
 	}
 });

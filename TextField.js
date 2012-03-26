@@ -3,7 +3,7 @@ dm.TextField = dm.Label.clone().newSlots({
 	elementName: "input",
 	placeholderText: "Enter Text",
 	placeholderTextColor: dm.Color.Gray,
-	growsToFit: true
+	growsToFit: false
 }).setSlots({
 	initElement: function()
 	{
@@ -124,9 +124,15 @@ dm.TextField = dm.Label.clone().newSlots({
 				{
 					self.sizeToFit();
 				}
-				self.delegatePerform("changed");
+				
+				self.changed();
 			}
 		});
+	},
+	
+	changed: function()
+	{
+		this.delegatePerform("changed");
 	},
 	
 	setText: function(text)
@@ -148,6 +154,8 @@ dm.TextField = dm.Label.clone().newSlots({
 		}
 		
 		this.checkChanged();
+		
+		return this;
 	},
 	
 	text: function()
@@ -161,6 +169,14 @@ dm.TextField = dm.Label.clone().newSlots({
 		{
 			return text;
 		}
+	},
+	
+	setPlaceholderText: function(placeholderText)
+	{
+		var text = this.text();
+		this._placeholderText = placeholderText;
+		this.setText(text);
+		return this;
 	},
 	
 	selectAll: function()

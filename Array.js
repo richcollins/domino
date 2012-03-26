@@ -91,6 +91,12 @@ Array.prototype.setSlotsIfAbsent(
 		}
 		return this;
 	},
+	
+	replaceElements: function(array)
+	{
+		this.empty().splice.apply(this, array.copy().prepend(0).prepend(array.length));
+		return this;
+	},
 
 	copy: function()
 	{

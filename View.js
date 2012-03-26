@@ -65,6 +65,11 @@ dm.View.setSlots({
 		this.initElement();
 		this.setSubviews(this.subviews().copy());
 	},
+	
+	domReady: function()
+	{
+		return dm.Window.inited();
+	},
 
 	createElement: function()
 	{
@@ -86,15 +91,11 @@ dm.View.setSlots({
 		this.styleSlots().forEach(function(ss){
 			self.perform("set" + ss.name().asCapitalized(), self.perform(ss.name()));
 		});
+		this.element().style.borderStyle = "solid";
 	},
 	
 	setBorderThickness: function(t)
 	{
-		if (t > 0)
-		{
-			this.element().style.borderStyle = "solid";
-		}
-		
 		return this.performSets({
 			leftBorderThickness: t,
 			rightBorderThickness: t,
@@ -219,6 +220,10 @@ dm.View.setSlots({
 		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
 		if  (lastHeight != h)
 		{
+			if (this.superview() && this.superview().canPerform("heightChanged"))
+			{
+				this.superview().subviewHeightChanged(this);
+			}
 			this.delegatePerform("heightChanged");
 		}
 		return this;
@@ -402,6 +407,7 @@ dm.View.setSlots({
 	{
 		margin = margin || 0;
 		this.setX(view.rightEdge() + margin);
+		return this;
 	},
 	
 	moveAbove: function(view, margin)
@@ -414,6 +420,7 @@ dm.View.setSlots({
 	{
 		margin = margin || 0;
 		this.setY(view.bottomEdge() + margin);
+		return this;
 	},
 	
 	alignTopTo: function(view)
@@ -444,6 +451,7 @@ dm.View.setSlots({
 	centerXOver: function(view)
 	{
 		this.setX(view.x() + (view.width() - this.width())/2);
+		return this;
 	},
 	
 	centerYOver: function(view)
@@ -455,6 +463,7 @@ dm.View.setSlots({
 	{
 		this.centerXOver(view);
 		this.centerYOver(view);
+		return this;
 	},
 	
 	center: function()
@@ -504,6 +513,7 @@ dm.View.setSlots({
 
 			this.setX(this.superview().width() - this.width() - margin);
 		}
+		return this;
 	},
 	
 	moveLeft: function(x)
@@ -524,6 +534,16 @@ dm.View.setSlots({
 	moveUp: function(y)
 	{
 		return this.setY(this.y() - y);
+	},
+	
+	growWidth: function(width)
+	{
+		return this.setWidth(this.width() + width);
+	},
+	
+	growHeight: function(height)
+	{
+		return this.setHeight(this.height() + height);
 	},
 	
 	autoResizeWidth: function(lastSuperWidth)
@@ -641,6 +661,7 @@ dm.View.setSlots({
 	{
 		this.setResizesWidth(true);
 		this.setResizesHeight(true);
+		return this;
 	},
 	
 	scaleToFitSuperview: function()
@@ -655,6 +676,7 @@ dm.View.setSlots({
 	scaleToFitSize: function(size)
 	{
 		this.setSize(this.size().scaleToFitPoint(size));
+		return this;
 	},
 	
 	sizingElement: function()
@@ -695,6 +717,44 @@ dm.View.setSlots({
 		this.sizeWidthToFit();
 		this.sizeHeightToFit();
 		return this;
+	},
+	
+	sizeWidthToFitSubviews: function()
+	{
+		return this.setWidth(this.subviews().mapPerform("rightEdge").max() + 1);
+	},
+	
+	sizeHeightToFitSubviews: function()
+	{
+		return this.setHeight(this.subviews().mapPerform("bottomEdge").max() + 1);
+	},
+	
+	sizeToFitSubviews: function()
+	{
+		this.sizeWidthToFitSubviews();
+		this.sizeHeightToFitSubviews();
+		
+		return this;
+	},
+	
+	stackSubviewsHorizontally: function(margin)
+	{
+		margin = margin || 0;
+		var x = margin;
+		this.subviews().forEach(function(sv){;
+			sv.setX(x);
+			x = sv.rightEdge() + margin;
+		});
+	},
+	
+	stackSubviewsVertically: function(margin)
+	{
+		margin = margin || 0;
+		var y = margin;
+		this.subviews().forEach(function(sv){;
+			sv.setY(y);
+			y = sv.bottomEdge() + margin;
+		});
 	},
 	
 	moveToBack: function()

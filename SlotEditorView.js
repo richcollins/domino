@@ -12,15 +12,10 @@ dm.SlotEditorView = dm.TableView.clone().newSlots({
 	
 	setObject: function(object)
 	{
-		if (!object)
-		{
-			this.empty();
-		}
-		else
+		this.empty();
+		if (object)
 		{
 			this._object = object;
-
-			this.empty();
 
 			var self = this;
 			object.editableSlots().forEach(function(editableSlot){

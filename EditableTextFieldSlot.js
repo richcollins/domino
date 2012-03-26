@@ -4,7 +4,10 @@ dm.EditableTextFieldSlot = dm.EditableSlot.clone().newSlots({
 }).setSlots({
 	textFieldChanged: function(tf)
 	{
-		this.slotEditorView().applyLayout();
+		if (this.slotEditorView())
+		{
+			this.slotEditorView().applyLayout();
+		}
 	},
 	
 	textFieldEditingEnded: function(tf)

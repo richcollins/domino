@@ -39,11 +39,18 @@ dm.CheckBox = dm.NativeControl.clone().newSlots({
 		this.setChecked(!this.checked());
 	},
 	
-	sizeToFit: function()
+	sizeWidthToFit: function()
 	{
-		dm.View.sizeToFit.call(this);
+		dm.View.sizeWidthToFit.call(this);
 		this.setWidth(this.width() + 2);
+		return this;
+	},
+	
+	sizeHeightToFit: function()
+	{
+		dm.View.sizeHeightToFit.call(this);
 		this.setHeight(this.height() + 2);
+		return this;
 	},
 	
 	value: function()

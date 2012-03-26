@@ -75,12 +75,12 @@ dm.TableView = dm.View.clone().newSlots({
 	
 	colCount: function()
 	{
-		return this.rows().map(function(r){ return (r && r.length) || 0 }).max();
+		return this.rows().map(function(r){ return (r && r.length) || 0 }).max() || 0;
 	},
 	
 	colWidth: function(col)
 	{
-		return this.rows().map(function(r){ return (r[col] || dm.View.clone()).width() }).max();
+		return this.rows().map(function(r){ return (r[col] || dm.View.clone()).width() }).max() || 0;
 	},
 	
 	rowCount: function()

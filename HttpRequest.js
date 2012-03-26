@@ -4,12 +4,14 @@ dm.HttpRequest = dm.Delegator.clone().newSlots({
 	body: null,
 	url: null,
 	xmlHttpRequest: null,
-	response: null
+	response: null,
+	headers: null
 }).setSlots({
 	init: function()
 	{
 		dm.Delegator.init.call(this);
 		this.setXmlHttpRequest(new XMLHttpRequest());
+		this.setHeaders({});
 	},
 	
 	start: function()
@@ -17,6 +19,9 @@ dm.HttpRequest = dm.Delegator.clone().newSlots({
 		var self = this;
 		var xhr = this.xmlHttpRequest();
 		xhr.open(this.method(), this.url(), true);
+		dm.Object_eachSlot(this.headers(), function(k, v){
+			xhr.setRequestHeader(k, v);
+		});
 		xhr.onreadystatechange = function()
 		{
 			if (xhr.readyState == 4)
@@ -30,6 +35,12 @@ dm.HttpRequest = dm.Delegator.clone().newSlots({
 			}
 		}
 		xhr.send(this.body());
+	},
+	
+	atPutHeader: function(name, value)
+	{
+		this.headers()[name] = value;
+		return this;
 	},
 	
 	retry: function()

@@ -642,6 +642,12 @@ Array.prototype.setSlotsIfAbsent(
 		}
 		return this;
 	},
+	
+	replaceElements: function(array)
+	{
+		this.empty().splice.apply(this, array.copy().prepend(0).prepend(array.length));
+		return this;
+	},
 
 	copy: function()
 	{
@@ -2256,6 +2262,11 @@ dm.View.setSlots({
 		this.initElement();
 		this.setSubviews(this.subviews().copy());
 	},
+	
+	domReady: function()
+	{
+		return dm.Window.inited();
+	},
 
 	createElement: function()
 	{
@@ -2277,15 +2288,11 @@ dm.View.setSlots({
 		this.styleSlots().forEach(function(ss){
 			self.perform("set" + ss.name().asCapitalized(), self.perform(ss.name()));
 		});
+		this.element().style.borderStyle = "solid";
 	},
 	
 	setBorderThickness: function(t)
 	{
-		if (t > 0)
-		{
-			this.element().style.borderStyle = "solid";
-		}
-		
 		return this.performSets({
 			leftBorderThickness: t,
 			rightBorderThickness: t,
@@ -2410,6 +2417,10 @@ dm.View.setSlots({
 		this.subviews().forEachPerform("autoResizeHeight", lastHeight);
 		if  (lastHeight != h)
 		{
+			if (this.superview() && this.superview().canPerform("heightChanged"))
+			{
+				this.superview().subviewHeightChanged(this);
+			}
 			this.delegatePerform("heightChanged");
 		}
 		return this;
@@ -2593,6 +2604,7 @@ dm.View.setSlots({
 	{
 		margin = margin || 0;
 		this.setX(view.rightEdge() + margin);
+		return this;
 	},
 	
 	moveAbove: function(view, margin)
@@ -2605,6 +2617,7 @@ dm.View.setSlots({
 	{
 		margin = margin || 0;
 		this.setY(view.bottomEdge() + margin);
+		return this;
 	},
 	
 	alignTopTo: function(view)
@@ -2635,6 +2648,7 @@ dm.View.setSlots({
 	centerXOver: function(view)
 	{
 		this.setX(view.x() + (view.width() - this.width())/2);
+		return this;
 	},
 	
 	centerYOver: function(view)
@@ -2646,6 +2660,7 @@ dm.View.setSlots({
 	{
 		this.centerXOver(view);
 		this.centerYOver(view);
+		return this;
 	},
 	
 	center: function()
@@ -2695,6 +2710,7 @@ dm.View.setSlots({
 
 			this.setX(this.superview().width() - this.width() - margin);
 		}
+		return this;
 	},
 	
 	moveLeft: function(x)
@@ -2715,6 +2731,16 @@ dm.View.setSlots({
 	moveUp: function(y)
 	{
 		return this.setY(this.y() - y);
+	},
+	
+	growWidth: function(width)
+	{
+		return this.setWidth(this.width() + width);
+	},
+	
+	growHeight: function(height)
+	{
+		return this.setHeight(this.height() + height);
 	},
 	
 	autoResizeWidth: function(lastSuperWidth)
@@ -2832,6 +2858,7 @@ dm.View.setSlots({
 	{
 		this.setResizesWidth(true);
 		this.setResizesHeight(true);
+		return this;
 	},
 	
 	scaleToFitSuperview: function()
@@ -2846,6 +2873,7 @@ dm.View.setSlots({
 	scaleToFitSize: function(size)
 	{
 		this.setSize(this.size().scaleToFitPoint(size));
+		return this;
 	},
 	
 	sizingElement: function()
@@ -2886,6 +2914,44 @@ dm.View.setSlots({
 		this.sizeWidthToFit();
 		this.sizeHeightToFit();
 		return this;
+	},
+	
+	sizeWidthToFitSubviews: function()
+	{
+		return this.setWidth(this.subviews().mapPerform("rightEdge").max() + 1);
+	},
+	
+	sizeHeightToFitSubviews: function()
+	{
+		return this.setHeight(this.subviews().mapPerform("bottomEdge").max() + 1);
+	},
+	
+	sizeToFitSubviews: function()
+	{
+		this.sizeWidthToFitSubviews();
+		this.sizeHeightToFitSubviews();
+		
+		return this;
+	},
+	
+	stackSubviewsHorizontally: function(margin)
+	{
+		margin = margin || 0;
+		var x = margin;
+		this.subviews().forEach(function(sv){;
+			sv.setX(x);
+			x = sv.rightEdge() + margin;
+		});
+	},
+	
+	stackSubviewsVertically: function(margin)
+	{
+		margin = margin || 0;
+		var y = margin;
+		this.subviews().forEach(function(sv){;
+			sv.setY(y);
+			y = sv.bottomEdge() + margin;
+		});
 	},
 	
 	moveToBack: function()
@@ -3049,19 +3115,6 @@ dm.Label = dm.View.clone().newSlots({
 	}
 });
 
-/*
-leftBorderThickness: { name: "borderLeftWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-rightBorderThickness: { name: "borderRightWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-topBorderThickness: { name: "borderTopWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-bottomBorderThickness: { name: "borderBottomWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-leftPaddingThickness: { name: "paddingLeft", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-rightPaddingThickness: { name: "paddingRight", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-topPaddingThickness: { name: "paddingTop", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-bottomPaddingThickness: { name: "paddingBottom", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-borderRadius: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-borderColor: { value: dm.Color.Black, transformation: { name: "color" } },
-*/
-
 dm.NativeControl = dm.View.clone().newSlots({
 	type: "dm.NativeControl"
 }).setSlots({
@@ -3080,7 +3133,7 @@ dm.TextField = dm.Label.clone().newSlots({
 	elementName: "input",
 	placeholderText: "Enter Text",
 	placeholderTextColor: dm.Color.Gray,
-	growsToFit: true
+	growsToFit: false
 }).setSlots({
 	initElement: function()
 	{
@@ -3201,9 +3254,15 @@ dm.TextField = dm.Label.clone().newSlots({
 				{
 					self.sizeToFit();
 				}
-				self.delegatePerform("changed");
+				
+				self.changed();
 			}
 		});
+	},
+	
+	changed: function()
+	{
+		this.delegatePerform("changed");
 	},
 	
 	setText: function(text)
@@ -3225,6 +3284,8 @@ dm.TextField = dm.Label.clone().newSlots({
 		}
 		
 		this.checkChanged();
+		
+		return this;
 	},
 	
 	text: function()
@@ -3238,6 +3299,14 @@ dm.TextField = dm.Label.clone().newSlots({
 		{
 			return text;
 		}
+	},
+	
+	setPlaceholderText: function(placeholderText)
+	{
+		var text = this.text();
+		this._placeholderText = placeholderText;
+		this.setText(text);
+		return this;
 	},
 	
 	selectAll: function()
@@ -3392,11 +3461,18 @@ dm.CheckBox = dm.NativeControl.clone().newSlots({
 		this.setChecked(!this.checked());
 	},
 	
-	sizeToFit: function()
+	sizeWidthToFit: function()
 	{
-		dm.View.sizeToFit.call(this);
+		dm.View.sizeWidthToFit.call(this);
 		this.setWidth(this.width() + 2);
+		return this;
+	},
+	
+	sizeHeightToFit: function()
+	{
+		dm.View.sizeHeightToFit.call(this);
 		this.setHeight(this.height() + 2);
+		return this;
 	},
 	
 	value: function()
@@ -3652,12 +3728,12 @@ dm.TableView = dm.View.clone().newSlots({
 	
 	colCount: function()
 	{
-		return this.rows().map(function(r){ return (r && r.length) || 0 }).max();
+		return this.rows().map(function(r){ return (r && r.length) || 0 }).max() || 0;
 	},
 	
 	colWidth: function(col)
 	{
-		return this.rows().map(function(r){ return (r[col] || dm.View.clone()).width() }).max();
+		return this.rows().map(function(r){ return (r[col] || dm.View.clone()).width() }).max() || 0;
 	},
 	
 	rowCount: function()
@@ -4162,15 +4238,59 @@ dm.VerticalListView = dm.TitledView.clone().newSlots({
 });
 
 dm.ImageView = dm.View.clone().newSlots({
-	type: "dm.ImageView",
+	type: "vx.ImageView",
+	loadState: "init",
 	url: null,
 	elementName: "img"
 }).setSlots({
+	initElement: function()
+	{
+		dm.View.initElement.call(this);
+		
+		var e = this.element();
+		var self = this;
+		e.onload = function()
+		{
+			self.loaded();
+		}
+	},
+	
 	setUrl: function(url)
 	{
 		this._url = url;
 		this.element().src = url;
 		return this;
+	},
+	
+	loaded: function()
+	{
+		this.setLoadState("load");
+		this.delegatePerform("loaded");
+	},
+
+	hasLoaded: function()
+	{
+		return this.loadState() == "load";
+	},
+	
+	sizeToFit: function()
+	{
+		return this.setWidth(this.naturalWidth()).setHeight(this.naturalHeight());
+	},
+	
+	naturalWidth: function()
+	{
+		return this.element().naturalWidth;
+	},
+	
+	naturalHeight: function()
+	{
+		return this.element().naturalHeight;
+	},
+	
+	naturalSize: function()
+	{
+		return dm.Point.withXY(this.naturalWidth(), this.naturalHeight());
 	}
 });
 dm.BorderedButton = dm.Button.clone().newSlots({
@@ -4268,6 +4388,8 @@ dm.ImageButton = dm.Button.clone().newSlots({
 		this.setHeight(3);
 		
 		var iv = dm.ImageView.clone();
+		iv.setDelegate(this);
+		iv.setDelegatePrefix("imageView");
 		iv.setWidth(3);
 		iv.setHeight(3);
 		iv.resizeToFill();
@@ -4278,6 +4400,18 @@ dm.ImageButton = dm.Button.clone().newSlots({
 	setImageUrl: function(imageUrl)
 	{
 		this.imageView().setUrl(imageUrl);
+	},
+	
+	imageViewLoaded: function()
+	{
+		this.delegatePerform("loaded");
+	},
+	
+	sizeToFit: function()
+	{
+		this.setSize(this.imageView().naturalSize());
+		this.imageView().setSize(this.imageView().naturalSize());
+		return this;
 	}
 });
 dm.VideoView = dm.View.clone().newSlots({
@@ -4522,7 +4656,8 @@ dm.EditableSlot = dm.Proto.clone().newSlots({
 	labelText: null,
 	control: null,
 	slotEditorView: null,
-	controlProto: null
+	controlProto: null,
+	controlWidth: 200
 }).setSlots({
 	label: function()
 	{
@@ -4573,7 +4708,16 @@ dm.EditableSlot = dm.Proto.clone().newSlots({
 		var row = this.object().editableSlots().indexOf(this);
 		slotEditorView.addAtRowCol(this.label(), row, 0);
 		this.control().setValue(this.value());
-		this.control().sizeToFit();
+		if (this.controlWidth())
+		{
+			this.control().setWidth(this.controlWidth());
+		}
+		else
+		{
+			this.control().sizeWidthToFit();
+		}
+		this.control().sizeHeightToFit();
+		
 		slotEditorView.addAtRowCol(this.control(), row, 1);
 		this.setSlotEditorView(slotEditorView);
 	}
@@ -4581,7 +4725,8 @@ dm.EditableSlot = dm.Proto.clone().newSlots({
 
 dm.EditableCheckBoxSlot = dm.EditableSlot.clone().newSlots({
 	type: "dm.EditableCheckBoxSlot",
-	controlProto: dm.CheckBox
+	controlProto: dm.CheckBox,
+	controlWidth: 0 //sizeToFit
 }).setSlots({
 	checkBoxChanged: function(dd)
 	{
@@ -4605,7 +4750,10 @@ dm.EditableTextFieldSlot = dm.EditableSlot.clone().newSlots({
 }).setSlots({
 	textFieldChanged: function(tf)
 	{
-		this.slotEditorView().applyLayout();
+		if (this.slotEditorView())
+		{
+			this.slotEditorView().applyLayout();
+		}
 	},
 	
 	textFieldEditingEnded: function(tf)
@@ -4638,15 +4786,10 @@ dm.SlotEditorView = dm.TableView.clone().newSlots({
 	
 	setObject: function(object)
 	{
-		if (!object)
-		{
-			this.empty();
-		}
-		else
+		this.empty();
+		if (object)
 		{
 			this._object = object;
-
-			this.empty();
 
 			var self = this;
 			object.editableSlots().forEach(function(editableSlot){
@@ -4679,12 +4822,14 @@ dm.HttpRequest = dm.Delegator.clone().newSlots({
 	body: null,
 	url: null,
 	xmlHttpRequest: null,
-	response: null
+	response: null,
+	headers: null
 }).setSlots({
 	init: function()
 	{
 		dm.Delegator.init.call(this);
 		this.setXmlHttpRequest(new XMLHttpRequest());
+		this.setHeaders({});
 	},
 	
 	start: function()
@@ -4692,6 +4837,9 @@ dm.HttpRequest = dm.Delegator.clone().newSlots({
 		var self = this;
 		var xhr = this.xmlHttpRequest();
 		xhr.open(this.method(), this.url(), true);
+		dm.Object_eachSlot(this.headers(), function(k, v){
+			xhr.setRequestHeader(k, v);
+		});
 		xhr.onreadystatechange = function()
 		{
 			if (xhr.readyState == 4)
@@ -4705,6 +4853,12 @@ dm.HttpRequest = dm.Delegator.clone().newSlots({
 			}
 		}
 		xhr.send(this.body());
+	},
+	
+	atPutHeader: function(name, value)
+	{
+		this.headers()[name] = value;
+		return this;
 	},
 	
 	retry: function()
