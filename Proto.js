@@ -199,7 +199,9 @@ dm.Proto.setSlots(
 		for(name in slots)
 		{
 			if(!this[name] && slots.hasOwnProperty(name))
-				this.setSlot(name, slots[name]);
+			{
+				this[name] = slots[name];
+			}
 		}
 		if(slots.hasOwnProperty("toString"))
 			this.toString = slots.toString;

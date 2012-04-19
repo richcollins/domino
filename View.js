@@ -76,6 +76,7 @@ dm.View.setSlots({
 		var e = document.createElement(this.elementName());
 		e.style.position = "absolute";
 		e.style.overflow = "hidden";
+		e._dmView = this;
 		this.setElement(e);
 	},
 	

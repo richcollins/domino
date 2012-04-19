@@ -78,7 +78,8 @@ Array.prototype.setSlotsIfAbsent(
 	
 	insertAt: function(i, obj)
 	{
-		this.splice(i, 1, obj);
+		this.splice(i, 0, obj);
+		return this;
 	},
 	
 	replace: function(obj, withObj)
@@ -115,7 +116,7 @@ Array.prototype.setSlotsIfAbsent(
 		return a;
 	},
 
-	last: function()
+	last: function(count)
 	{
 		return this[this.length - 1];
 	},

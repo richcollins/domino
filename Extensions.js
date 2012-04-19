@@ -1,3 +1,9 @@
+Array.prototype.setSlotsIfAbsent = dm.Proto.setSlotsIfAbsent;
+Array.prototype.argsAsArray = dm.Proto.argsAsArray;
+Array.prototype.setSlotsIfAbsent = dm.Proto.setSlotsIfAbsent;
+String.prototype.setSlotsIfAbsent = dm.Proto.setSlotsIfAbsent;
+Number.prototype.setSlotsIfAbsent = dm.Proto.setSlotsIfAbsent;
+/*
 (function(){
 	for(var slotName in dm.Proto)
 	{
@@ -18,3 +24,4 @@
 		});
 	}
 })();
+*/

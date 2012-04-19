@@ -1,4 +1,4 @@
-Number.prototype.setSlots(
+Number.prototype.setSlotsIfAbsent(
 {
 	cssString: function() 
 	{

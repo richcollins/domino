@@ -102,6 +102,16 @@ dm.Window = dm.View.clone().newSlots({
 	windowLoaded: function()
 	{
 		dm.Window.init();
+		/*
+		try
+		{
+			dm.Window.init();
+		}
+		catch (e)
+		{
+			alert(e);
+		}
+		*/
 	}
 });
 

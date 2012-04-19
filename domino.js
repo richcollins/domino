@@ -199,7 +199,9 @@ dm.Proto.setSlots(
 		for(name in slots)
 		{
 			if(!this[name] && slots.hasOwnProperty(name))
-				this.setSlot(name, slots[name]);
+			{
+				this[name] = slots[name];
+			}
 		}
 		if(slots.hasOwnProperty("toString"))
 			this.toString = slots.toString;
@@ -489,6 +491,12 @@ dm.Browser = dm.Proto.clone().setSlots(
 	}
 });
 
+Array.prototype.setSlotsIfAbsent = dm.Proto.setSlotsIfAbsent;
+Array.prototype.argsAsArray = dm.Proto.argsAsArray;
+Array.prototype.setSlotsIfAbsent = dm.Proto.setSlotsIfAbsent;
+String.prototype.setSlotsIfAbsent = dm.Proto.setSlotsIfAbsent;
+Number.prototype.setSlotsIfAbsent = dm.Proto.setSlotsIfAbsent;
+/*
 (function(){
 	for(var slotName in dm.Proto)
 	{
@@ -509,7 +517,7 @@ dm.Browser = dm.Proto.clone().setSlots(
 		});
 	}
 })();
-
+*/
 dm.Importer = dm.Proto.clone().setType("dm.Importer").newSlots({
 	basePath: null,
 	addsTimestamp: false
@@ -629,7 +637,8 @@ Array.prototype.setSlotsIfAbsent(
 	
 	insertAt: function(i, obj)
 	{
-		this.splice(i, 1, obj);
+		this.splice(i, 0, obj);
+		return this;
 	},
 	
 	replace: function(obj, withObj)
@@ -666,7 +675,7 @@ Array.prototype.setSlotsIfAbsent(
 		return a;
 	},
 
-	last: function()
+	last: function(count)
 	{
 		return this[this.length - 1];
 	},
@@ -1189,7 +1198,7 @@ Array.prototype.setSlotsIfAbsent(
 	}
 });
 
-Number.prototype.setSlots(
+Number.prototype.setSlotsIfAbsent(
 {
 	cssString: function() 
 	{
@@ -2273,6 +2282,7 @@ dm.View.setSlots({
 		var e = document.createElement(this.elementName());
 		e.style.position = "absolute";
 		e.style.overflow = "hidden";
+		e._dmView = this;
 		this.setElement(e);
 	},
 	
@@ -3088,6 +3098,16 @@ dm.Window = dm.View.clone().newSlots({
 	windowLoaded: function()
 	{
 		dm.Window.init();
+		/*
+		try
+		{
+			dm.Window.init();
+		}
+		catch (e)
+		{
+			alert(e);
+		}
+		*/
 	}
 });
 
