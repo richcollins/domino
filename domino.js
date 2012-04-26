@@ -2243,8 +2243,8 @@ dm.View = dm.Delegator.clone().newSlots({
 }).newStyleSlots({
 	x: { name: "left", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	y: { name: "top", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-	cssWidth: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
-	cssHeight: { value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	cssWidth: { name: "width", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
+	cssHeight: { name: "height", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	leftBorderThickness: { name: "borderLeftWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	rightBorderThickness: { name: "borderRightWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
 	topBorderThickness: { name: "borderTopWidth", value: 0, transformation: { name: "roundedSuffix", suffix: "px" } },
