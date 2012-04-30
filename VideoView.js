@@ -99,6 +99,7 @@ dm.VideoView = dm.View.clone().newSlots({
 	
 	load: function()
 	{
+		this.setCanPlay(false);
 		this.element().load();
 	},
 	
