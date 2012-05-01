@@ -636,5 +636,19 @@ Array.prototype.setSlotsIfAbsent(
 		if(i < 0) return null;
 		if(this[i]) { return this[i]; }
 		return null;
-	}
+	},
+	
+	isArray: true
 });
+
+Array.wrap = function(obj)
+{
+	if (obj.isArray)
+	{
+		return obj;
+	}
+	else
+	{
+		return [obj];
+	}
+}
