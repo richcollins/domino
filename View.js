@@ -366,18 +366,31 @@ dm.View.setSlots({
 
 	addSubview: function(subview)
 	{
+		this.insertSubviewAt(subview, this.subviews().length);
+		return this;
+	},
+	
+	insertSubviewAt: function(subview, index)
+	{
 		var oldSuperview = subview.superview();
 		if (oldSuperview)
 		{
 			oldSuperview.removeSubview(subview);
 		}
 		subview.setSuperview(this);
-		this.subviews().append(subview);
-		this.element().appendChild(subview.element());
+		var existingView = this.subviews()[index];
+		if (existingView)
+		{
+			this.subviews().atInsert(index, subview);
+			this.element().insertBefore(subview.element(), existingView.element());
+		}
+		else
+		{
+			this.subviews().append(subview);
+			this.element().appendChild(subview.element());
+		}
 		
 		subview.conditionallyPerform("superviewChanged");
-		
-		return this;
 	},
 	
 	addToView: function(v)
@@ -402,6 +415,13 @@ dm.View.setSlots({
 	bottomEdge: function()
 	{
 		return this.y() + this.height();
+	},
+	
+	moveLeftOf: function(view, margin)
+	{
+		margin = margin || 0;
+		this.setX(view.x() - margin - this.width());
+		return this;
 	},
 	
 	moveRightOf: function(view, margin)
@@ -680,6 +700,15 @@ dm.View.setSlots({
 		return this;
 	},
 	
+	scaleFrameBy: function(scaleFactor)
+	{
+		console.log(scaleFactor)
+		this.setX(this.x()*scaleFactor);
+		this.setY(this.y()*scaleFactor);
+		this.setWidth(this.width()*scaleFactor);
+		this.setHeight(this.height()*scaleFactor);
+	},
+	
 	sizingElement: function()
 	{
 		var e = this.element().cloneNode(true);
@@ -756,6 +785,19 @@ dm.View.setSlots({
 			sv.setY(y);
 			y = sv.bottomEdge() + margin;
 		});
+	},
+	
+	moveSubviewsIntoView: function()
+	{
+		var dx = Math.min(this.subviews().mapPerform("x").min(), 0).abs();
+		var dy = Math.min(this.subviews().mapPerform("y").min(), 0).abs();
+		
+		this.subviews().forEach(function(sv){
+			sv.setX(sv.x() + dx);
+			sv.setY(sv.y() + dy);
+		})
+		
+		return this;
 	},
 	
 	moveToBack: function()

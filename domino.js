@@ -637,6 +637,12 @@ Array.prototype.setSlotsIfAbsent(
 	
 	insertAt: function(i, obj)
 	{
+		console.log("insertAt deprecated -- use atInsert");
+		return this.atInsert(i, obj);
+	},
+	
+	atInsert: function(i, obj)
+	{
 		this.splice(i, 0, obj);
 		return this;
 	},
@@ -647,7 +653,7 @@ Array.prototype.setSlotsIfAbsent(
 		if (i > -1)
 		{
 			this.removeAt(i);
-			this.insertAt(i, withObj);
+			this.atInsert(i, withObj);
 		}
 		return this;
 	},
@@ -1270,6 +1276,11 @@ Number.prototype.setSlotsIfAbsent(
 	isEven: function()
 	{
 		return this % 2 == 0;
+	},
+	
+	abs: function()
+	{
+		return Math.abs(this);
 	}
 });
 
@@ -2045,6 +2056,7 @@ dm.Color.setSlots({
 	Black: dm.Color.clone(),
 	Red: dm.Color.clone().setRed(1.0),
 	Green: dm.Color.clone().setGreen(1.0),
+	Blue: dm.Color.clone().setBlue(1.0),
 	DarkGreen: dm.Color.clone().setGreen(100/255),
 	Yellow: dm.Color.withRGB(1.0, 1.0, 0)
 });
@@ -2585,18 +2597,31 @@ dm.View.setSlots({
 
 	addSubview: function(subview)
 	{
+		this.insertSubviewAt(subview, this.subviews().length);
+		return this;
+	},
+	
+	insertSubviewAt: function(subview, index)
+	{
 		var oldSuperview = subview.superview();
 		if (oldSuperview)
 		{
 			oldSuperview.removeSubview(subview);
 		}
 		subview.setSuperview(this);
-		this.subviews().append(subview);
-		this.element().appendChild(subview.element());
+		var existingView = this.subviews()[index];
+		if (existingView)
+		{
+			this.subviews().atInsert(index, subview);
+			this.element().insertBefore(subview.element(), existingView.element());
+		}
+		else
+		{
+			this.subviews().append(subview);
+			this.element().appendChild(subview.element());
+		}
 		
 		subview.conditionallyPerform("superviewChanged");
-		
-		return this;
 	},
 	
 	addToView: function(v)
@@ -2621,6 +2646,13 @@ dm.View.setSlots({
 	bottomEdge: function()
 	{
 		return this.y() + this.height();
+	},
+	
+	moveLeftOf: function(view, margin)
+	{
+		margin = margin || 0;
+		this.setX(view.x() - margin - this.width());
+		return this;
 	},
 	
 	moveRightOf: function(view, margin)
@@ -2899,6 +2931,15 @@ dm.View.setSlots({
 		return this;
 	},
 	
+	scaleFrameBy: function(scaleFactor)
+	{
+		console.log(scaleFactor)
+		this.setX(this.x()*scaleFactor);
+		this.setY(this.y()*scaleFactor);
+		this.setWidth(this.width()*scaleFactor);
+		this.setHeight(this.height()*scaleFactor);
+	},
+	
 	sizingElement: function()
 	{
 		var e = this.element().cloneNode(true);
@@ -2975,6 +3016,19 @@ dm.View.setSlots({
 			sv.setY(y);
 			y = sv.bottomEdge() + margin;
 		});
+	},
+	
+	moveSubviewsIntoView: function()
+	{
+		var dx = Math.min(this.subviews().mapPerform("x").min(), 0).abs();
+		var dy = Math.min(this.subviews().mapPerform("y").min(), 0).abs();
+		
+		this.subviews().forEach(function(sv){
+			sv.setX(sv.x() + dx);
+			sv.setY(sv.y() + dy);
+		})
+		
+		return this;
 	},
 	
 	moveToBack: function()
@@ -3302,7 +3356,10 @@ dm.TextField = dm.Label.clone().newSlots({
 	{
 		if (text.strip() == "")
 		{
-			this._originalColor = this.color();
+			if (!this._originalColor)
+			{
+				this._originalColor = this.color();
+			}
 			this.setColor(this.placeholderTextColor());
 			this.element().value = this.placeholderText();
 		}
@@ -3312,6 +3369,10 @@ dm.TextField = dm.Label.clone().newSlots({
 			{
 				this.setColor(this._originalColor);
 				delete this._originalColor;
+			}
+			else
+			{
+				this.setColor(dm.TextField.color());
 			}
 			this.element().value = text;
 		}
@@ -4399,7 +4460,9 @@ dm.BorderedButton = dm.Button.clone().newSlots({
 	{
 		var style = this.element().style;
 		var widths = [this.topBorderWidth(), this.rightBorderWidth(), this.bottomBorderWidth(), this.leftBorderWidth()];
-		style.webkitBorderImage = "url(" + this.borderImageUrl() + ") " + widths.join(" ");
+		var value = "url(" + this.borderImageUrl() + ") " + widths.join(" ");
+		style.setProperty("-webkit-border-image", value);
+		style.setProperty("-o-border-image", value);
 		widths = widths.map(function(w){ return w + "px"  });
 		style.borderWidth = widths.join(" ");
 		style.width = (this.width() - this.leftBorderWidth() - this.rightBorderWidth()) + "px";
@@ -4481,6 +4544,10 @@ dm.VideoView = dm.View.clone().newSlots({
 			self.delegatePerform("canPlay");
 		});
 		
+		this.addEventListener("loadeddata", function(){
+			self.delegatePerform("loadedData");
+		});
+		
 		this.addEventListener("timeupdate", function(){
 			self.delegatePerform("advanced");
 		});
@@ -4504,7 +4571,7 @@ dm.VideoView = dm.View.clone().newSlots({
 	setUrl: function(url)
 	{
 		this._url = url;
-		this.element().src = url
+//this.element().src = this.url(); //TODO???
 		return this;
 	},
 	
@@ -4548,6 +4615,7 @@ dm.VideoView = dm.View.clone().newSlots({
 	
 	load: function()
 	{
+		this.element().src = this.url(); //TODO???
 		this.setCanPlay(false);
 		this.element().load();
 	},
@@ -4601,6 +4669,17 @@ dm.ProgressIndicatorView = dm.View.clone().newSlots({
 		return this;
 	}
 });
+dm.HtmlView = dm.View.clone().newSlots({
+	type: "dm.HtmlView",
+	html: ""
+}).setSlots({
+	setHtml: function(html)
+	{
+		this._html = html;
+		this.element().innerHTML = html;
+		return this;
+	}
+})
 dm.Editable = dm.Delegator.clone().newSlots({
 	type: "dm.Editable",
 	watchesSlots: true,
@@ -4764,7 +4843,7 @@ dm.EditableCheckBoxSlot = dm.EditableSlot.clone().newSlots({
 }).setSlots({
 	checkBoxChanged: function(dd)
 	{
-		this.updateValue();
+		//this.updateValue();
 	}
 });
 
@@ -4792,7 +4871,7 @@ dm.EditableTextFieldSlot = dm.EditableSlot.clone().newSlots({
 	
 	textFieldEditingEnded: function(tf)
 	{
-		this.updateValue();
+		//this.updateValue();
 	}
 });
 
@@ -4802,7 +4881,7 @@ dm.EditableTextAreaSlot = dm.EditableSlot.clone().newSlots({
 }).setSlots({
 	textAreaEditingEnded: function(tf)
 	{
-		this.updateValue();
+		//this.updateValue();
 	}
 });
 
@@ -4830,6 +4909,14 @@ dm.SlotEditorView = dm.TableView.clone().newSlots({
 				editableSlot.addTo(self);
 			});
 		}
+	},
+	
+	updateObject: function()
+	{
+		this.object().setWatchesSlots(false);
+		this.object().editableSlots().forEachPerform("updateValue");
+		this.object().setWatchesSlots(true);
+		return this;
 	},
 	
 	midX: function()

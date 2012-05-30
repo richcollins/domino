@@ -139,7 +139,10 @@ dm.TextField = dm.Label.clone().newSlots({
 	{
 		if (text.strip() == "")
 		{
-			this._originalColor = this.color();
+			if (!this._originalColor)
+			{
+				this._originalColor = this.color();
+			}
 			this.setColor(this.placeholderTextColor());
 			this.element().value = this.placeholderText();
 		}
@@ -149,6 +152,10 @@ dm.TextField = dm.Label.clone().newSlots({
 			{
 				this.setColor(this._originalColor);
 				delete this._originalColor;
+			}
+			else
+			{
+				this.setColor(dm.TextField.color());
 			}
 			this.element().value = text;
 		}

@@ -4,6 +4,6 @@ dm.EditableTextAreaSlot = dm.EditableSlot.clone().newSlots({
 }).setSlots({
 	textAreaEditingEnded: function(tf)
 	{
-		this.updateValue();
+		//this.updateValue();
 	}
 });

@@ -24,6 +24,14 @@ dm.SlotEditorView = dm.TableView.clone().newSlots({
 		}
 	},
 	
+	updateObject: function()
+	{
+		this.object().setWatchesSlots(false);
+		this.object().editableSlots().forEachPerform("updateValue");
+		this.object().setWatchesSlots(true);
+		return this;
+	},
+	
 	midX: function()
 	{
 		return this.colWidth(0) + this.hMargin() + this.hMargin()/2;

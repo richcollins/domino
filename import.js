@@ -36,6 +36,7 @@ dm.Importer.importPaths([
 	"ImageButton",
 	"VideoView",
 	"ProgressIndicatorView",
+	"HtmlView",
 	
 	"Editable",
 	"EditableSlot",

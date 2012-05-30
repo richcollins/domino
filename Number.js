@@ -57,5 +57,10 @@ Number.prototype.setSlotsIfAbsent(
 	isEven: function()
 	{
 		return this % 2 == 0;
+	},
+	
+	abs: function()
+	{
+		return Math.abs(this);
 	}
 });

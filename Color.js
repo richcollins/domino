@@ -38,6 +38,7 @@ dm.Color.setSlots({
 	Black: dm.Color.clone(),
 	Red: dm.Color.clone().setRed(1.0),
 	Green: dm.Color.clone().setGreen(1.0),
+	Blue: dm.Color.clone().setBlue(1.0),
 	DarkGreen: dm.Color.clone().setGreen(100/255),
 	Yellow: dm.Color.withRGB(1.0, 1.0, 0)
 });

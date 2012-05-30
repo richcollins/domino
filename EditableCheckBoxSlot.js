@@ -5,6 +5,6 @@ dm.EditableCheckBoxSlot = dm.EditableSlot.clone().newSlots({
 }).setSlots({
 	checkBoxChanged: function(dd)
 	{
-		this.updateValue();
+		//this.updateValue();
 	}
 });

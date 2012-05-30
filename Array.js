@@ -78,6 +78,12 @@ Array.prototype.setSlotsIfAbsent(
 	
 	insertAt: function(i, obj)
 	{
+		console.log("insertAt deprecated -- use atInsert");
+		return this.atInsert(i, obj);
+	},
+	
+	atInsert: function(i, obj)
+	{
 		this.splice(i, 0, obj);
 		return this;
 	},
@@ -88,7 +94,7 @@ Array.prototype.setSlotsIfAbsent(
 		if (i > -1)
 		{
 			this.removeAt(i);
-			this.insertAt(i, withObj);
+			this.atInsert(i, withObj);
 		}
 		return this;
 	},

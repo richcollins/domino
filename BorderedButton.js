@@ -71,7 +71,9 @@ dm.BorderedButton = dm.Button.clone().newSlots({
 	{
 		var style = this.element().style;
 		var widths = [this.topBorderWidth(), this.rightBorderWidth(), this.bottomBorderWidth(), this.leftBorderWidth()];
-		style.webkitBorderImage = "url(" + this.borderImageUrl() + ") " + widths.join(" ");
+		var value = "url(" + this.borderImageUrl() + ") " + widths.join(" ");
+		style.setProperty("-webkit-border-image", value);
+		style.setProperty("-o-border-image", value);
 		widths = widths.map(function(w){ return w + "px"  });
 		style.borderWidth = widths.join(" ");
 		style.width = (this.width() - this.leftBorderWidth() - this.rightBorderWidth()) + "px";
