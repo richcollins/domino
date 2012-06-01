@@ -27,6 +27,8 @@ dm.VideoView = dm.View.clone().newSlots({
 		var self = this;
 		var e = this.element();
 		
+		e.style.pointerEvents = "none";
+		
 		this.addEventListener("canplay", function(){
 			self.setCanPlay(true);
 			self.delegatePerform("canPlay");
@@ -59,7 +61,6 @@ dm.VideoView = dm.View.clone().newSlots({
 	setUrl: function(url)
 	{
 		this._url = url;
-//this.element().src = this.url(); //TODO???
 		return this;
 	},
 	
@@ -103,7 +104,7 @@ dm.VideoView = dm.View.clone().newSlots({
 	
 	load: function()
 	{
-		this.element().src = this.url(); //TODO???
+		this.element().src = this.url();
 		this.setCanPlay(false);
 		this.element().load();
 	},
