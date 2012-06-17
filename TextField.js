@@ -203,6 +203,6 @@ dm.TextField = dm.Label.clone().newSlots({
 	
 	setValue: function(value)
 	{
-		this.setText(value);
+		this.setText(value || "");
 	}
 });

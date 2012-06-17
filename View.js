@@ -702,7 +702,6 @@ dm.View.setSlots({
 	
 	scaleFrameBy: function(scaleFactor)
 	{
-		console.log(scaleFactor)
 		this.setX(this.x()*scaleFactor);
 		this.setY(this.y()*scaleFactor);
 		this.setWidth(this.width()*scaleFactor);
