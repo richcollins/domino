@@ -1,5 +1,5 @@
 dm.ImageView = dm.View.clone().newSlots({
-	type: "vx.ImageView",
+	type: "dm.ImageView",
 	loadState: "init",
 	url: null,
 	elementName: "img"

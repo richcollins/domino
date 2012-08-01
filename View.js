@@ -807,6 +807,12 @@ dm.View.setSlots({
 		}
 	},
 	
+	setZIndexToMax: function()
+	{
+		this.setZIndex(2147483647);
+		return this;
+	},
+	
 	//animations
 	fadeOut: function(duration)
 	{

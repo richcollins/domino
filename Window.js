@@ -3,13 +3,17 @@ dm.Window = dm.View.clone().newSlots({
 	lastResizeWidth: null,
 	lastResizeHeight: null,
 	inited: false,
-	containerElement: null
+	containerElement: null,
+	clearsElement: true
 }).setSlots({
 	init: function()
 	{
 		dm.View.init.call(this);
 		
-		this.element().innerHTML = "";
+		if (this.clearsElement())
+		{
+			this.element().innerHTML = "";
+		}
 		
 		this.setLastResizeWidth(this.width());
 		this.setLastResizeHeight(this.height());

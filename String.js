@@ -247,5 +247,18 @@ String.prototype.setSlotsIfAbsent(
 	base64UrlDecoded: function()
 	{
 		return this.replace(/-/g, '+').replace(/_/g, '/').replace(/,/g, '=').base64Decoded();
+	},
+	
+	pathExtension: function()
+	{
+		var parts = this.split("?").first().split("/").last().split(".");
+		if (parts.length > 1)
+		{
+			return parts.at(-1);
+		}
+		else
+		{
+			return null;
+		}
 	}
 });
