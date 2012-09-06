@@ -51,11 +51,17 @@ dm.VideoView = dm.View.clone().newSlots({
 		});
 		
 		this.addEventListener("loadedmetadata", function(){
-			self.setNativeWidth(e.videoWidth);
-			self.setNativeHeight(e.videoHeight);
-			self.setDuration(e.duration);
-			self.delegatePerform("loadedMetaData");
+			self.loadedMetaData();
 		});
+	},
+	
+	loadedMetaData: function()
+	{
+		var e = this.element();
+		this.setNativeWidth(e.videoWidth);
+		this.setNativeHeight(e.videoHeight);
+		this.setDuration(e.duration);
+		this.delegatePerform("loadedMetaData");
 	},
 	
 	setUrl: function(url)
