@@ -52,6 +52,7 @@ dm.Editable = dm.Delegator.clone().newSlots({
 				editableSlot.setName(description.name);
 				editableSlot.setNormalizer(description.normalizer);
 				editableSlot.setObject(self);
+				editableSlot.setSectionName(description.sectionName);
 				if (description.label)
 				{
 					editableSlot.label().performSets(description.label).sizeToFit();

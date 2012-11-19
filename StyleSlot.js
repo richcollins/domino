@@ -17,6 +17,10 @@ dm.StyleSlot = dm.Proto.clone().newSlots({
 		view[name] = function(){ return this["_" + name] }
 		view["set" + name.asCapitalized()] = function(v)
 		{
+			if (this._postsStyleChanges)
+			{
+				this.delegatePerform("styleChanged", name);
+			}
 			this["_" + name] = v;
 			if (transformation)
 			{

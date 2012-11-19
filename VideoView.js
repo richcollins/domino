@@ -53,6 +53,10 @@ dm.VideoView = dm.View.clone().newSlots({
 		this.addEventListener("loadedmetadata", function(){
 			self.loadedMetaData();
 		});
+		
+		this.addEventListener("error", function(){
+			self.delegatePerform("error");
+		});
 	},
 	
 	loadedMetaData: function()

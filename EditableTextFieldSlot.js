@@ -12,6 +12,6 @@ dm.EditableTextFieldSlot = dm.EditableSlot.clone().newSlots({
 	
 	textFieldEditingEnded: function(tf)
 	{
-		//this.updateValue();
+		this.updateValue();
 	}
 });

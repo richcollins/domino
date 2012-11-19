@@ -8,7 +8,8 @@ dm.EditableSlot = dm.Proto.clone().newSlots({
 	control: null,
 	slotEditorView: null,
 	controlProto: null,
-	controlWidth: 200
+	controlWidth: 200,
+	sectionName: null
 }).setSlots({
 	label: function()
 	{
@@ -57,6 +58,8 @@ dm.EditableSlot = dm.Proto.clone().newSlots({
 	addTo: function(slotEditorView)
 	{
 		var row = this.object().editableSlots().indexOf(this);
+		
+		slotEditorView.setSectionName(this.sectionName());
 		slotEditorView.addAtRowCol(this.label(), row, 0);
 		this.control().setValue(this.value());
 		if (this.controlWidth())

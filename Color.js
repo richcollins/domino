@@ -32,6 +32,7 @@ dm.Color = dm.Proto.clone().newSlots({
 dm.Color.setSlots({
 	Transparent: dm.Color.clone().setAlpha(0),
 	White: dm.Color.clone().setRed(1).setGreen(1).setBlue(1),
+	VeryLightGray: dm.Color.clone().setRed(224/255).setGreen(224/255).setBlue(224/255),
 	LightGray: dm.Color.clone().setRed(212/255).setGreen(212/255).setBlue(212/255),
 	Gray: dm.Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
 	DimGray: dm.Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),

@@ -18,5 +18,10 @@ dm.Label = dm.View.clone().newSlots({
 		this.element().innerText = text;
 		
 		return this;
+	},
+	
+	setValue: function(text)
+	{
+		return this.setText(text);
 	}
 });

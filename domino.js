@@ -1533,6 +1533,19 @@ String.prototype.setSlotsIfAbsent(
 	base64UrlDecoded: function()
 	{
 		return this.replace(/-/g, '+').replace(/_/g, '/').replace(/,/g, '=').base64Decoded();
+	},
+	
+	pathExtension: function()
+	{
+		var parts = this.split("?").first().split("/").last().split(".");
+		if (parts.length > 1)
+		{
+			return parts.at(-1);
+		}
+		else
+		{
+			return null;
+		}
 	}
 });
 
@@ -2050,6 +2063,7 @@ dm.Color = dm.Proto.clone().newSlots({
 dm.Color.setSlots({
 	Transparent: dm.Color.clone().setAlpha(0),
 	White: dm.Color.clone().setRed(1).setGreen(1).setBlue(1),
+	VeryLightGray: dm.Color.clone().setRed(224/255).setGreen(224/255).setBlue(224/255),
 	LightGray: dm.Color.clone().setRed(212/255).setGreen(212/255).setBlue(212/255),
 	Gray: dm.Color.clone().setRed(127/255).setGreen(127/255).setBlue(127/255),
 	DimGray: dm.Color.clone().setRed(105/255).setGreen(105/255).setBlue(105/255),
@@ -2100,7 +2114,6 @@ dm.Delegator = dm.Proto.clone().newSlots({
 			var d = this.delegate();
 
 			messageName = this.delegateMessageName(messageName)
-//console.log(messageName);
 			if (d && d.canPerform(messageName))
 			{
 				return d.performWithArgList(messageName, args);
@@ -2128,6 +2141,10 @@ dm.StyleSlot = dm.Proto.clone().newSlots({
 		view[name] = function(){ return this["_" + name] }
 		view["set" + name.asCapitalized()] = function(v)
 		{
+			if (this._postsStyleChanges)
+			{
+				this.delegatePerform("styleChanged", name);
+			}
 			this["_" + name] = v;
 			if (transformation)
 			{
@@ -2244,7 +2261,8 @@ dm.View = dm.Delegator.clone().newSlots({
 	resizesHeight: false,
 	styleSlots: [],
 	autoResizes: true,
-	tracksMouse: false
+	tracksMouse: false,
+	postsStyleChanges: false
 }).setSlot("newStyleSlots", function(slots){
 	for (var name in slots)
 	{
@@ -2683,6 +2701,7 @@ dm.View.setSlots({
 	alignMiddleTo: function(view)
 	{
 		this.setY(view.y() + .5*view.height() - .5*this.height());
+		return this;
 	},
 	
 	alignBottomTo: function(view)
@@ -2732,6 +2751,8 @@ dm.View.setSlots({
 		{
 			this.setX((s.width() - this.width())/2);
 		}
+		
+		return this;
 	},
 	
 	centerVertically: function()
@@ -2933,7 +2954,6 @@ dm.View.setSlots({
 	
 	scaleFrameBy: function(scaleFactor)
 	{
-		console.log(scaleFactor)
 		this.setX(this.x()*scaleFactor);
 		this.setY(this.y()*scaleFactor);
 		this.setWidth(this.width()*scaleFactor);
@@ -3039,6 +3059,12 @@ dm.View.setSlots({
 		}
 	},
 	
+	setZIndexToMax: function()
+	{
+		this.setZIndex(2147483647);
+		return this;
+	},
+	
 	//animations
 	fadeOut: function(duration)
 	{
@@ -3058,7 +3084,124 @@ dm.View.setSlots({
 				self.element().style.opacity = initialOpacity;
 			}
 		}, 1000/60);
-	}
+	},
+	
+	setDraggable: function(draggable)
+	{
+		var self = this;
+		this._draggable = draggable;
+		
+		if (draggable)
+		{
+			this.element().style.setProperty("pointer-events", "all");
+			this._dragMouseDownListner = function(e)
+			{
+				self.beginDrag(e);
+			}
+			this.addEventListener("mousedown", this._dragMouseDownListner);
+		}
+		else
+		{
+			this.element().style.removeProperty("pointer-events");
+			this.removeEventListener("mousedown", this._draggableListener);
+			this.endDrag();
+		}
+		
+		return this;
+	},
+	
+	beginDrag: function(e)
+	{
+		if (!dm.View._dragView)
+		{
+			e.preventDefault();
+			e.stopPropagation();
+			
+			this._lastDragEvent = e;
+			//console.log(this.elementId(), "beginDrag", e);
+
+			dm.View._dragView = this;
+			var self = this;
+			this._dragMouseMoveListener = function(e)
+			{
+				self.moveDrag(e);
+			}
+			this._dragMouseUpListener = function(e)
+			{
+				self.endDrag(e);
+			}
+			dm.Window.addEventListener("mousemove", this._dragMouseMoveListener);
+			dm.Window.addEventListener("mouseup", this._dragMouseUpListener);
+		}
+	},
+	
+	moveDrag: function(e)
+	{
+		e.preventDefault();
+		e.stopPropagation();
+		
+		if (this._lastDragEvent)
+		{
+			this.setX(this.x() + e.screenX - this._lastDragEvent.screenX);
+			this.setY(this.y() + e.screenY - this._lastDragEvent.screenY);
+			this._lastDragEvent = e;
+		}
+		
+		//console.log(this.elementId(), "moveDrag", e);
+	},
+	
+	endDrag: function(e)
+	{
+		e.preventDefault();
+		e.stopPropagation();
+		
+		//console.log(this.elementId(), "endDrag", e);
+		delete dm.View._dragView;
+		if (this._lastDragEvent)
+		{
+			this.setX(this.x() + e.screenX - this._lastDragEvent.screenX);
+			this.setY(this.y() + e.screenY - this._lastDragEvent.screenY);
+			this._lastDragEvent = e;
+		}
+		delete this._lastDragEvent;
+		dm.Window.removeEventListener("mousemove", this._dragMouseMoveListener);
+		dm.Window.removeEventListener("mouseup", this._dragMouseUpListener);
+	},
+	
+	draggable: function()
+	{
+		return this._draggable;
+	}/*,
+	
+	setUserResizable: function(userResizable)
+	{
+		this._userResizable = userResizable;
+		if (userResizable)
+		{
+			this._userResizingControls = [];
+			var self = this;
+			var d = 20;
+			[[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(function(directions){
+				var xDirection = directions.first();
+				var yDirection = directions.last();
+				
+				var control = dm.Button.clone().performSets({
+					x: xDirection*(self.width()/2 - d),
+					y: yDirection*(self.height()/2 - d),
+					width: d,
+					height: d,
+					delegate: self,
+					delegatePrefix: "cornerPoint",
+					resizesLeft: 
+				})
+			});
+		}
+		else if (this._userResizingControls)
+		{
+			this._userResizingControls.forEachPerform("removeFromSuperview");
+			delete this._userResizingControls;
+		}
+	}*/
 });
 
 dm.Window = dm.View.clone().newSlots({
@@ -3066,13 +3209,17 @@ dm.Window = dm.View.clone().newSlots({
 	lastResizeWidth: null,
 	lastResizeHeight: null,
 	inited: false,
-	containerElement: null
+	containerElement: null,
+	clearsElement: true
 }).setSlots({
 	init: function()
 	{
 		dm.View.init.call(this);
 		
-		this.element().innerHTML = "";
+		if (this.clearsElement())
+		{
+			this.element().innerHTML = "";
+		}
 		
 		this.setLastResizeWidth(this.width());
 		this.setLastResizeHeight(this.height());
@@ -3199,6 +3346,11 @@ dm.Label = dm.View.clone().newSlots({
 		this.element().innerText = text;
 		
 		return this;
+	},
+	
+	setValue: function(text)
+	{
+		return this.setText(text);
 	}
 });
 
@@ -3420,7 +3572,7 @@ dm.TextField = dm.Label.clone().newSlots({
 	
 	setValue: function(value)
 	{
-		this.setText(value);
+		this.setText(value || "");
 	}
 });
 
@@ -3751,7 +3903,9 @@ dm.TableView = dm.View.clone().newSlots({
 	vMargin: 8,
 	hMargin: 10,
 	colAlignments: [],
-	rowAlignments: []
+	rowAlignments: [],
+	sectionName: null,
+	lastSectionName: null
 }).setSlots({
 	init: function()
 	{
@@ -3782,9 +3936,37 @@ dm.TableView = dm.View.clone().newSlots({
 	
 	addAtRowCol: function(view, rowNum, colNum)
 	{
+		var sectionName = this.sectionName();
+		if (sectionName && (sectionName != this.lastSectionName()))
+		{	
+			var sectionView = dm.View.clone().performSets({
+				width: this.width(),
+				height: 64,
+				resizesWidth: true
+			}).addToView(this);
+			
+			var sectionLabel = dm.Label.clone().performSets({
+				text: sectionName,
+				fontSize: 18,
+				y: 16
+			}).sizeToFit().addToView(sectionView);
+			
+			var sectionDivider = dm.View.clone().performSets({
+				height: 1,
+				width: sectionView.width(),
+				resizesWidth: true,
+				backgroundColor: dm.Color.LightGray
+			}).addToView(sectionView).moveBelow(sectionLabel, 8);
+			
+			view._sectionView = sectionView;
+			
+			this.setLastSectionName(sectionName);
+		}
+		
 		var rows = this.rows();
 		
 		var row = this.row(rowNum);
+
 		
 		var existingView = row[colNum];
 		if (existingView)
@@ -3811,6 +3993,8 @@ dm.TableView = dm.View.clone().newSlots({
 	
 	empty: function()
 	{
+		this.setSectionName(null);
+		this.setLastSectionName(null);
 		this.setRows([]);
 		this.removeAllSubviews();
 	},
@@ -3864,15 +4048,16 @@ dm.TableView = dm.View.clone().newSlots({
 	applyLayout: function()
 	{
 		var self = this;
-		this.setWidth(this.colCount().map(function(colNum){ return self.colWidth(colNum) }).sum() + this.hMargin() * (this.colCount() + 1));
-		this.setHeight(this.rowCount().map(function(rowNum){ return self.rowHeight(rowNum) }).sum() + this.vMargin() * (this.rowCount() + 1));
+		
+		var colWidths = self.colCount().map(function(c){ return self.colWidth(c) });
 		
 		var rows = this.rows();
+		var topEdge = this.vMargin();
 		for (var r = 0; r < this.rowCount(); r ++)
 		{
 			var row = rows[r];
 			var rowAlignment = this.rowAlignment(r);
-			
+			var nextTopEdge = topEdge;
 			for (var c = 0; c < this.colCount(); c ++)
 			{
 				var colAlignment = this.colAlignment(c);
@@ -3880,7 +4065,7 @@ dm.TableView = dm.View.clone().newSlots({
 				var v = this.viewAtRowCol(r, c);
 				if (v)
 				{
-					var leftEdge = this.hMargin() + c*this.hMargin() + c.map(function(c){ return self.colWidth(c) }).sum();
+					var leftEdge = this.hMargin() + c*this.hMargin() + c.map(function(c){ return colWidths[c] }).sum();
 					
 					if (colAlignment == dm.TableView.ColAlignmentLeft)
 					{
@@ -3895,7 +4080,14 @@ dm.TableView = dm.View.clone().newSlots({
 						v.setX(leftEdge + this.colWidth(c) - v.width());
 					}
 					
-					var topEdge = this.vMargin() + r*this.vMargin() + r.map(function(r){ return self.rowHeight(r) }).sum();
+					var sectionView = v._sectionView;
+					
+					if (sectionView)
+					{
+						sectionView.setY(topEdge);
+						topEdge = sectionView.bottomEdge();
+					}
+					
 					if (rowAlignment == dm.TableView.RowAlignmentTop)
 					{
 						v.setY(topEdge);
@@ -3908,9 +4100,17 @@ dm.TableView = dm.View.clone().newSlots({
 					{
 						v.setY(topEdge + this.rowHeight(r) - v.height());
 					}
+					
+					nextTopEdge = Math.max(nextTopEdge, v.bottomEdge() + this.vMargin());
 				}
 			}
+			
+			topEdge = nextTopEdge;
 		}
+		
+		this.setWidth(colWidths.sum() + this.hMargin() * (colWidths.length + 1));
+		this.setHeight(topEdge);
+				
 		return this;
 	}
 });
@@ -4332,7 +4532,7 @@ dm.VerticalListView = dm.TitledView.clone().newSlots({
 });
 
 dm.ImageView = dm.View.clone().newSlots({
-	type: "vx.ImageView",
+	type: "dm.ImageView",
 	loadState: "init",
 	url: null,
 	elementName: "img"
@@ -4539,6 +4739,8 @@ dm.VideoView = dm.View.clone().newSlots({
 		var self = this;
 		var e = this.element();
 		
+		e.style.pointerEvents = "none";
+		
 		this.addEventListener("canplay", function(){
 			self.setCanPlay(true);
 			self.delegatePerform("canPlay");
@@ -4561,17 +4763,26 @@ dm.VideoView = dm.View.clone().newSlots({
 		});
 		
 		this.addEventListener("loadedmetadata", function(){
-			self.setNativeWidth(e.videoWidth);
-			self.setNativeHeight(e.videoHeight);
-			self.setDuration(e.duration);
-			self.delegatePerform("loadedMetaData");
+			self.loadedMetaData();
 		});
+		
+		this.addEventListener("error", function(){
+			self.delegatePerform("error");
+		});
+	},
+	
+	loadedMetaData: function()
+	{
+		var e = this.element();
+		this.setNativeWidth(e.videoWidth);
+		this.setNativeHeight(e.videoHeight);
+		this.setDuration(e.duration);
+		this.delegatePerform("loadedMetaData");
 	},
 	
 	setUrl: function(url)
 	{
 		this._url = url;
-//this.element().src = this.url(); //TODO???
 		return this;
 	},
 	
@@ -4615,7 +4826,7 @@ dm.VideoView = dm.View.clone().newSlots({
 	
 	load: function()
 	{
-		this.element().src = this.url(); //TODO???
+		this.element().src = this.url();
 		this.setCanPlay(false);
 		this.element().load();
 	},
@@ -4734,6 +4945,7 @@ dm.Editable = dm.Delegator.clone().newSlots({
 				editableSlot.setName(description.name);
 				editableSlot.setNormalizer(description.normalizer);
 				editableSlot.setObject(self);
+				editableSlot.setSectionName(description.sectionName);
 				if (description.label)
 				{
 					editableSlot.label().performSets(description.label).sizeToFit();
@@ -4770,7 +4982,8 @@ dm.EditableSlot = dm.Proto.clone().newSlots({
 	control: null,
 	slotEditorView: null,
 	controlProto: null,
-	controlWidth: 200
+	controlWidth: 200,
+	sectionName: null
 }).setSlots({
 	label: function()
 	{
@@ -4819,6 +5032,8 @@ dm.EditableSlot = dm.Proto.clone().newSlots({
 	addTo: function(slotEditorView)
 	{
 		var row = this.object().editableSlots().indexOf(this);
+		
+		slotEditorView.setSectionName(this.sectionName());
 		slotEditorView.addAtRowCol(this.label(), row, 0);
 		this.control().setValue(this.value());
 		if (this.controlWidth())
@@ -4871,7 +5086,7 @@ dm.EditableTextFieldSlot = dm.EditableSlot.clone().newSlots({
 	
 	textFieldEditingEnded: function(tf)
 	{
-		//this.updateValue();
+		this.updateValue();
 	}
 });
 

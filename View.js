@@ -13,7 +13,8 @@ dm.View = dm.Delegator.clone().newSlots({
 	resizesHeight: false,
 	styleSlots: [],
 	autoResizes: true,
-	tracksMouse: false
+	tracksMouse: false,
+	postsStyleChanges: false
 }).setSlot("newStyleSlots", function(slots){
 	for (var name in slots)
 	{
@@ -452,6 +453,7 @@ dm.View.setSlots({
 	alignMiddleTo: function(view)
 	{
 		this.setY(view.y() + .5*view.height() - .5*this.height());
+		return this;
 	},
 	
 	alignBottomTo: function(view)
@@ -501,6 +503,8 @@ dm.View.setSlots({
 		{
 			this.setX((s.width() - this.width())/2);
 		}
+		
+		return this;
 	},
 	
 	centerVertically: function()
@@ -832,5 +836,122 @@ dm.View.setSlots({
 				self.element().style.opacity = initialOpacity;
 			}
 		}, 1000/60);
-	}
+	},
+	
+	setDraggable: function(draggable)
+	{
+		var self = this;
+		this._draggable = draggable;
+		
+		if (draggable)
+		{
+			this.element().style.setProperty("pointer-events", "all");
+			this._dragMouseDownListner = function(e)
+			{
+				self.beginDrag(e);
+			}
+			this.addEventListener("mousedown", this._dragMouseDownListner);
+		}
+		else
+		{
+			this.element().style.removeProperty("pointer-events");
+			this.removeEventListener("mousedown", this._draggableListener);
+			this.endDrag();
+		}
+		
+		return this;
+	},
+	
+	beginDrag: function(e)
+	{
+		if (!dm.View._dragView)
+		{
+			e.preventDefault();
+			e.stopPropagation();
+			
+			this._lastDragEvent = e;
+			//console.log(this.elementId(), "beginDrag", e);
+
+			dm.View._dragView = this;
+			var self = this;
+			this._dragMouseMoveListener = function(e)
+			{
+				self.moveDrag(e);
+			}
+			this._dragMouseUpListener = function(e)
+			{
+				self.endDrag(e);
+			}
+			dm.Window.addEventListener("mousemove", this._dragMouseMoveListener);
+			dm.Window.addEventListener("mouseup", this._dragMouseUpListener);
+		}
+	},
+	
+	moveDrag: function(e)
+	{
+		e.preventDefault();
+		e.stopPropagation();
+		
+		if (this._lastDragEvent)
+		{
+			this.setX(this.x() + e.screenX - this._lastDragEvent.screenX);
+			this.setY(this.y() + e.screenY - this._lastDragEvent.screenY);
+			this._lastDragEvent = e;
+		}
+		
+		//console.log(this.elementId(), "moveDrag", e);
+	},
+	
+	endDrag: function(e)
+	{
+		e.preventDefault();
+		e.stopPropagation();
+		
+		//console.log(this.elementId(), "endDrag", e);
+		delete dm.View._dragView;
+		if (this._lastDragEvent)
+		{
+			this.setX(this.x() + e.screenX - this._lastDragEvent.screenX);
+			this.setY(this.y() + e.screenY - this._lastDragEvent.screenY);
+			this._lastDragEvent = e;
+		}
+		delete this._lastDragEvent;
+		dm.Window.removeEventListener("mousemove", this._dragMouseMoveListener);
+		dm.Window.removeEventListener("mouseup", this._dragMouseUpListener);
+	},
+	
+	draggable: function()
+	{
+		return this._draggable;
+	}/*,
+	
+	setUserResizable: function(userResizable)
+	{
+		this._userResizable = userResizable;
+		if (userResizable)
+		{
+			this._userResizingControls = [];
+			var self = this;
+			var d = 20;
+			[[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(function(directions){
+				var xDirection = directions.first();
+				var yDirection = directions.last();
+				
+				var control = dm.Button.clone().performSets({
+					x: xDirection*(self.width()/2 - d),
+					y: yDirection*(self.height()/2 - d),
+					width: d,
+					height: d,
+					delegate: self,
+					delegatePrefix: "cornerPoint",
+					resizesLeft: 
+				})
+			});
+		}
+		else if (this._userResizingControls)
+		{
+			this._userResizingControls.forEachPerform("removeFromSuperview");
+			delete this._userResizingControls;
+		}
+	}*/
 });

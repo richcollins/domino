@@ -4,7 +4,9 @@ dm.TableView = dm.View.clone().newSlots({
 	vMargin: 8,
 	hMargin: 10,
 	colAlignments: [],
-	rowAlignments: []
+	rowAlignments: [],
+	sectionName: null,
+	lastSectionName: null
 }).setSlots({
 	init: function()
 	{
@@ -35,9 +37,37 @@ dm.TableView = dm.View.clone().newSlots({
 	
 	addAtRowCol: function(view, rowNum, colNum)
 	{
+		var sectionName = this.sectionName();
+		if (sectionName && (sectionName != this.lastSectionName()))
+		{	
+			var sectionView = dm.View.clone().performSets({
+				width: this.width(),
+				height: 64,
+				resizesWidth: true
+			}).addToView(this);
+			
+			var sectionLabel = dm.Label.clone().performSets({
+				text: sectionName,
+				fontSize: 18,
+				y: 16
+			}).sizeToFit().addToView(sectionView);
+			
+			var sectionDivider = dm.View.clone().performSets({
+				height: 1,
+				width: sectionView.width(),
+				resizesWidth: true,
+				backgroundColor: dm.Color.LightGray
+			}).addToView(sectionView).moveBelow(sectionLabel, 8);
+			
+			view._sectionView = sectionView;
+			
+			this.setLastSectionName(sectionName);
+		}
+		
 		var rows = this.rows();
 		
 		var row = this.row(rowNum);
+
 		
 		var existingView = row[colNum];
 		if (existingView)
@@ -64,6 +94,8 @@ dm.TableView = dm.View.clone().newSlots({
 	
 	empty: function()
 	{
+		this.setSectionName(null);
+		this.setLastSectionName(null);
 		this.setRows([]);
 		this.removeAllSubviews();
 	},
@@ -117,15 +149,16 @@ dm.TableView = dm.View.clone().newSlots({
 	applyLayout: function()
 	{
 		var self = this;
-		this.setWidth(this.colCount().map(function(colNum){ return self.colWidth(colNum) }).sum() + this.hMargin() * (this.colCount() + 1));
-		this.setHeight(this.rowCount().map(function(rowNum){ return self.rowHeight(rowNum) }).sum() + this.vMargin() * (this.rowCount() + 1));
+		
+		var colWidths = self.colCount().map(function(c){ return self.colWidth(c) });
 		
 		var rows = this.rows();
+		var topEdge = this.vMargin();
 		for (var r = 0; r < this.rowCount(); r ++)
 		{
 			var row = rows[r];
 			var rowAlignment = this.rowAlignment(r);
-			
+			var nextTopEdge = topEdge;
 			for (var c = 0; c < this.colCount(); c ++)
 			{
 				var colAlignment = this.colAlignment(c);
@@ -133,7 +166,7 @@ dm.TableView = dm.View.clone().newSlots({
 				var v = this.viewAtRowCol(r, c);
 				if (v)
 				{
-					var leftEdge = this.hMargin() + c*this.hMargin() + c.map(function(c){ return self.colWidth(c) }).sum();
+					var leftEdge = this.hMargin() + c*this.hMargin() + c.map(function(c){ return colWidths[c] }).sum();
 					
 					if (colAlignment == dm.TableView.ColAlignmentLeft)
 					{
@@ -148,7 +181,14 @@ dm.TableView = dm.View.clone().newSlots({
 						v.setX(leftEdge + this.colWidth(c) - v.width());
 					}
 					
-					var topEdge = this.vMargin() + r*this.vMargin() + r.map(function(r){ return self.rowHeight(r) }).sum();
+					var sectionView = v._sectionView;
+					
+					if (sectionView)
+					{
+						sectionView.setY(topEdge);
+						topEdge = sectionView.bottomEdge();
+					}
+					
 					if (rowAlignment == dm.TableView.RowAlignmentTop)
 					{
 						v.setY(topEdge);
@@ -161,9 +201,17 @@ dm.TableView = dm.View.clone().newSlots({
 					{
 						v.setY(topEdge + this.rowHeight(r) - v.height());
 					}
+					
+					nextTopEdge = Math.max(nextTopEdge, v.bottomEdge() + this.vMargin());
 				}
 			}
+			
+			topEdge = nextTopEdge;
 		}
+		
+		this.setWidth(colWidths.sum() + this.hMargin() * (colWidths.length + 1));
+		this.setHeight(topEdge);
+				
 		return this;
 	}
 });
