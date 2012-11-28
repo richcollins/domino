@@ -397,6 +397,11 @@ dm.Proto.setSlots(
 		}
 	},
 	
+	performSet: function(name, value)
+	{
+		return this.conditionallyPerform("set" + name.asCapitalized(), value);
+	},
+	
 	performSets: function(slots)
 	{
 		for (var name in slots)
