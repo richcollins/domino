@@ -251,7 +251,7 @@ String.prototype.setSlotsIfAbsent(
 	
 	pathExtension: function()
 	{
-		var parts = this.split("?").first().split("/").last().split(".");
+		var parts = this.split("?").first().split("#").first().split("/").last().split(".");
 		if (parts.length > 1)
 		{
 			return parts.at(-1);
