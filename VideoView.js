@@ -29,7 +29,7 @@ dm.VideoView = dm.View.clone().newSlots({
 		
 		e.style.pointerEvents = "none";
 		
-		this.addEventListener("canplay", function(){
+		this.addEventListener("canplay", function(){;
 			self.setCanPlay(true);
 			self.delegatePerform("canPlay");
 		});
@@ -54,7 +54,7 @@ dm.VideoView = dm.View.clone().newSlots({
 			self.loadedMetaData();
 		});
 		
-		this.addEventListener("error", function(){
+		this.addEventListener("error", function(e){
 			self.delegatePerform("error");
 		});
 	},
@@ -114,14 +114,23 @@ dm.VideoView = dm.View.clone().newSlots({
 	
 	load: function()
 	{
-		this.element().src = this.url();
-		this.setCanPlay(false);
-		this.element().load();
+		if (!this._didLoad)
+		{
+			this._didLoad = true;
+			this.element().src = this.url();
+			this.setCanPlay(false);
+			this.element().load();
+		}
 	},
 	
 	play: function()
 	{
 		this.element().play();
+	},
+	
+	isPaused: function()
+	{
+		return this.element().paused;
 	},
 	
 	pause: function()
@@ -137,5 +146,65 @@ dm.VideoView = dm.View.clone().newSlots({
 	scaling: function()
 	{
 		return this.width() / this.nativeWidth();
-	}
+	}/*,
+	
+	x: function() {
+	  return this._x || 0;
+	},
+	
+	setX: function(x) {
+	  this._x = x;
+	  this.applyTransform();
+	  return this;
+	},
+	
+	y: function() {
+	  return this._y || 0;
+	},
+	
+	setY: function(y) {
+	  this._y = y;
+	  this.applyTransform();
+	  return this;
+	},
+	
+	setX: function(x) {
+	  this._x = x;
+	  this.applyTransform();
+	  return this;
+	},
+	
+	width: function() {
+	  return this._width || 0;
+	},
+	
+	setWidth: function(width) {
+	  this._width = width;
+	  this.applyTransform();
+	  return this;
+	},
+	
+	height: function() {
+	  return this._height || 0;
+	},
+	
+	setHeight: function(height) {
+	  this._height = height;
+	  this.applyTransform();
+	  return this;
+	},
+	
+	applyTransform: function() {
+	  var e = this.element();
+	  console.log(this.width(), this.nativeWidth());
+	  var scale = this.width()/this.nativeWidth();
+	  var transform = "translate(" + this.x() + "px," + this.y() + "px) scale(" + scale + "," + scale + ")";
+	  console.log(transform);
+	  e.style.setProperty("-webkit-transform", transform);
+		e.style.setProperty("-webkit-transform-origin", "0px 0px");
+		e.style.left = "0px";
+		e.style.top = "0px";
+		e.style.width = this.nativeWidth() + "px";
+		e.style.height = this.nativeHeight() + "px";
+	}*/
 });

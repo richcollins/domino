@@ -14,6 +14,16 @@ dm.ImageView = dm.View.clone().newSlots({
 		{
 			self.loaded();
 		}
+		
+		e.onerror = function()
+		{
+			self.loadFailed();
+		}
+		
+		e.onabort = function()
+		{
+			self.loadFailed();
+		}
 	},
 	
 	setUrl: function(url)
@@ -28,10 +38,21 @@ dm.ImageView = dm.View.clone().newSlots({
 		this.setLoadState("load");
 		this.delegatePerform("loaded");
 	},
+	
+	loadFailed: function()
+	{
+		this.setLoadState("loadFailed");
+		this.delegatePerform("loadFailed");
+	},
 
 	hasLoaded: function()
 	{
 		return this.loadState() == "load";
+	},
+	
+	didFailToLoad: function()
+	{
+		return this.loadState() == "loadFailed";
 	},
 	
 	sizeToFit: function()

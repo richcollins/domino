@@ -91,7 +91,7 @@ dm.Proto.setSlot = function(name, value)
 	return this;
 };
 
-dm.Proto.uniqueIdCounter = 0;
+dm.Proto.uniqueIdCounter = new Date().getTime();
 
 dm.Proto.setSlots = function(slots)
 {

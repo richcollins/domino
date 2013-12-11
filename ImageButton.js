@@ -30,6 +30,11 @@ dm.ImageButton = dm.Button.clone().newSlots({
 		this.delegatePerform("loaded");
 	},
 	
+	imageViewLoadFailed: function()
+	{
+		this.delegatePerform("loadFailed");
+	},
+	
 	sizeToFit: function()
 	{
 		this.setSize(this.imageView().naturalSize());

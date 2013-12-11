@@ -137,6 +137,14 @@ dm.TextField = dm.Label.clone().newSlots({
 	
 	setText: function(text)
 	{
+		this.justSetText(text);
+		this.checkChanged();
+		
+		return this;
+	},
+	
+	justSetText: function(text)
+	{
 		if (text.strip() == "")
 		{
 			if (!this._originalColor)
@@ -159,10 +167,6 @@ dm.TextField = dm.Label.clone().newSlots({
 			}
 			this.element().value = text;
 		}
-		
-		this.checkChanged();
-		
-		return this;
 	},
 	
 	text: function()
@@ -204,5 +208,10 @@ dm.TextField = dm.Label.clone().newSlots({
 	setValue: function(value)
 	{
 		this.setText(value || "");
+	},
+	
+	justSetValue: function(value)
+	{
+		this.justSetText(value || "");
 	}
 });
